@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/rykroon/ry-cli/cmd/finance"
 	"github.com/spf13/cobra"
 )
 
@@ -27,5 +26,5 @@ func runRootCmd(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	rootCmd.AddCommand(finance.FinanceCmd)
+	rootCmd.AddCommand(amortizeCmd)
 }
