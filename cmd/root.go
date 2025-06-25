@@ -4,16 +4,15 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/rykroon/ry-cli/cmd/finance"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "ry",
-	Short: "Ry CLI is a tool for Ryan.",
+	Short: "Ry CLI is a command line tool for Ryan.",
 	Long:  ``,
-	Run: func(cmd *cobra.Command, args []string) {
-		// Do Stuff Here
-	},
+	Run:   runRootCmd,
 }
 
 func Execute() {
@@ -21,4 +20,12 @@ func Execute() {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
+}
+
+func runRootCmd(cmd *cobra.Command, args []string) {
+	fmt.Println("root")
+}
+
+func init() {
+	rootCmd.AddCommand(finance.FinanceCmd)
 }
