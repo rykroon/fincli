@@ -26,5 +26,6 @@ func runRootCmd(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	rootCmd.AddCommand(amortizeCmd)
+	rootCmd.AddCommand(amortizationCmd)
+	rootCmd.AddCommand(rebalanceCmd)
 }
