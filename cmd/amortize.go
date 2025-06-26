@@ -45,6 +45,7 @@ func runAmortizeCmd(cmd *cobra.Command, args []string) {
 		fmt.Println(strings.Repeat("-", 58))
 
 		for _, payment := range payments {
+			// add cumalive interest and equity
 			year := payment.Month/12 + 1
 			fmt.Printf("%-6d %-6d $%-11.2f $%-11.2f $%-11.2f $%-11.2f\n",
 				year, payment.Month, monthlyPayment, payment.PrincipalPaid, payment.InterestPaid, payment.Balance)

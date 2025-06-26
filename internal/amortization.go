@@ -14,9 +14,12 @@ func AmortizeLoan(p float64, r float64, n int) float64 {
 }
 
 func AmortizationSchedule(p float64, r float64, n int) []Payment {
+	// add extra payment option.
 	monthlyPayment := AmortizeLoan(p, r, n)
 	payments := make([]Payment, n+1)
 	balance := p
+	// if using extra payment, use while loop
+	// while balance > 0
 	for i := range n {
 		interestPaid := balance * r
 		principalPaid := monthlyPayment - interestPaid
