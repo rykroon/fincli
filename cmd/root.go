@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/rykroon/ry-cli/cmd/amortization"
 	"github.com/spf13/cobra"
 )
 
@@ -11,7 +12,6 @@ var rootCmd = &cobra.Command{
 	Use:   "ry",
 	Short: "Ry CLI is a command line tool for Ryan.",
 	Long:  ``,
-	Run:   runRootCmd,
 }
 
 func Execute() {
@@ -21,11 +21,7 @@ func Execute() {
 	}
 }
 
-func runRootCmd(cmd *cobra.Command, args []string) {
-	fmt.Println("root")
-}
-
 func init() {
-	rootCmd.AddCommand(amortizationCmd)
+	rootCmd.AddCommand(amortization.AmortizationCmd)
 	rootCmd.AddCommand(rebalanceCmd)
 }

@@ -57,10 +57,11 @@ func runRebalanceCmd(cmd *cobra.Command, args []string) error {
 
 	prntr := message.NewPrinter(language.English)
 
+	prntr.Printf("%-6s %-12s\n", "Slice", "Amount")
+	fmt.Println(strings.Repeat("-", 21))
 	for _, s := range slices {
 		prntr.Printf("%-6s $%-12.f\n", s.Name, total*float64(s.Allocation)/100)
 	}
-	// Do more stuff.
 
 	return nil
 }
