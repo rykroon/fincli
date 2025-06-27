@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/rykroon/ry-cli/cmd/amortization"
 	"github.com/spf13/cobra"
 )
 
@@ -22,6 +21,6 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.AddCommand(amortization.AmortizationCmd)
+	rootCmd.AddCommand(mortgageCmd)
 	rootCmd.AddCommand(rebalanceCmd)
 }
