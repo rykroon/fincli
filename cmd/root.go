@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/rykroon/ry-cli/cmd/realestate"
 	"github.com/spf13/cobra"
 )
 
@@ -21,6 +22,6 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.AddCommand(mortgageCmd)
+	rootCmd.AddCommand(realestate.RealEstateCmd)
 	rootCmd.AddCommand(rebalanceCmd)
 }

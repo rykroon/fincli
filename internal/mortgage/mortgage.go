@@ -51,7 +51,3 @@ func CalculatePayments(p float64, i float64, n int, extraPayment float64) (float
 	}
 	return monthlyPayment, payments
 }
-
-func PrintSchedule(monthlyPayment float64, payments []payment) {
-	// add option to print monthly or annually
-}
