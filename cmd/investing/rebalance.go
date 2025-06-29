@@ -1,4 +1,4 @@
-package cmd
+package investing
 
 import (
 	"fmt"
