@@ -9,70 +9,102 @@ import (
 	"golang.org/x/text/message"
 )
 
-var mortgageCmd = &cobra.Command{
-	Use:   "mortgage",
+var mortgagePayoffCmd = &cobra.Command{
+	Use:   "mortgage-payoff",
 	Short: "Calculate mortgage costs.",
 	Run:   runMortgageCmd,
 }
 
-type mortgageFlags struct {
-	Amount        float64
-	Rate          float64
-	Years         int
-	ExtraPayment  float64
-	PrintSchedule bool
+type mortgagePayoffFlags struct {
+	Amount          float64
+	Rate            float64
+	Years           int
+	ExtraPayment    float64
+	MonthlySchedule bool
+	AnnualSchedule  bool
 }
 
-var mgf mortgageFlags
+var mpf mortgagePayoffFlags
 
 func runMortgageCmd(cmd *cobra.Command, args []string) {
 	fmt := message.NewPrinter(language.English)
-	i := mgf.Rate / 12 / 100
-	n := mgf.Years * 12
-	monthlyPayment, payments := mortgage.CalculatePayments(mgf.Amount, i, n, mgf.ExtraPayment)
-	monthlyPayment += mgf.ExtraPayment
-	totals := mortgage.SumPayments(payments)
-	fmt.Printf("Monthly Payment: %.2f\n", monthlyPayment)
-	fmt.Printf("Total Payment Amount: $%.2f\n", totals.TotalPayments)
-	fmt.Printf("Total Interest Paid: $%.2f\n", totals.TotalInterest)
+	i := mpf.Rate / 12 / 100
+	n := mpf.Years * 12
+	// eps := mortgage.NewMonthlyPaymentStrategy(mpf.ExtraPayment)
+	monthlyPayment, payments := mortgage.CalculatePayments(mpf.Amount, i, n, mortgage.NewExtraMonthlyPaymentStrategy(749.08))
+	monthlyPayment += mpf.ExtraPayment
+	stats := mortgage.GetPaymentScheduleStats(payments)
+	fmt.Printf("Monthly Payment: %.2f\n", stats.AverageMonthlyPayment)
+	fmt.Printf("Total Amount Paid: $%.2f\n", stats.TotalPayments)
+	fmt.Printf("Total Interest Paid: $%.2f\n", stats.TotalInterest)
+	fmt.Printf("Pay off in %d years and %d month(s)\n", len(payments)/12, len(payments)%12)
 
-	if mgf.PrintSchedule {
-		yearNum := 0
+	if mpf.MonthlySchedule {
+		// print headers
+		fmt.Printf(
+			"%-6s %-12s %-12s %-12s\n",
+			"Month",
+			"Principal",
+			"Interest",
+			"Balance",
+		)
+		fmt.Println(strings.Repeat("-", 55))
 		for _, payment := range payments {
-			if payment.Period%12 == 1 {
-				yearNum += 1
-				fmt.Println("")
-				fmt.Printf("%-18s~~~ Year %d ~~~\n", "", yearNum)
-				fmt.Printf(
-					"%-6s %-12s %-12s %-12s\n",
-					"Period",
-					"Principal",
-					"Interest",
-					"Balance",
-				)
-				fmt.Println(strings.Repeat("-", 55))
-			}
-
-			// add cumulative interest and equity
 			fmt.Printf("%-6d $%-11.2f $%-11.2f $%-11.2f\n",
 				payment.Period,
 				payment.PrincipalPaid,
 				payment.InterestPaid,
 				payment.Balance,
 			)
+
+			if payment.Period%12 == 0 {
+				fmt.Printf("\t--- End of Year %d ---\n", payment.Period/12)
+			}
 		}
+	} else if mpf.AnnualSchedule {
+		// print headers
+		fmt.Printf(
+			"%-6s %-12s %-12s %-12s\n",
+			"Year",
+			"Principal",
+			"Interest",
+			"Balance",
+		)
+		fmt.Println(strings.Repeat("-", 55))
+		annualPrincipalPaid := float64(0)
+		annualInterestPaid := float64(0)
+
+		for _, payment := range payments {
+			annualPrincipalPaid += payment.PrincipalPaid
+			annualInterestPaid += payment.InterestPaid
+
+			if payment.Period%12 == 0 {
+				fmt.Printf("%-6d $%-11.2f $%-11.2f $%-11.2f\n",
+					payment.Period/12,
+					annualPrincipalPaid,
+					annualInterestPaid,
+					payment.Balance,
+				)
+				annualPrincipalPaid = 0
+				annualInterestPaid = 0
+			}
+		}
+
 	}
 }
 
 func init() {
-	mortgageCmd.Flags().Float64VarP(&mgf.Amount, "amount", "a", 0, "The loan amount borrowed.")
-	mortgageCmd.Flags().Float64VarP(&mgf.Rate, "rate", "r", 0, "Annual interest rate.")
-	mortgageCmd.Flags().IntVarP(&mgf.Years, "years", "y", 30, "Loan term in years.")
+	mortgagePayoffCmd.Flags().Float64VarP(&mpf.Amount, "amount", "a", 0, "The loan amount borrowed.")
+	mortgagePayoffCmd.Flags().Float64VarP(&mpf.Rate, "rate", "r", 0, "Annual interest rate.")
+	mortgagePayoffCmd.Flags().IntVarP(&mpf.Years, "years", "y", 30, "Loan term in years.")
 
-	mortgageCmd.MarkFlagRequired("amount")
-	mortgageCmd.MarkFlagRequired("rate")
+	mortgagePayoffCmd.MarkFlagRequired("amount")
+	mortgagePayoffCmd.MarkFlagRequired("rate")
 
 	// optional flags
-	mortgageCmd.Flags().Float64Var(&mgf.ExtraPayment, "extra", 0, "Extra payment per month.")
-	mortgageCmd.Flags().BoolVar(&mgf.PrintSchedule, "print-schedule", false, "Print the amortization schedule.")
+	mortgagePayoffCmd.Flags().Float64Var(&mpf.ExtraPayment, "extra", 0, "Extra payment per month.")
+	mortgagePayoffCmd.Flags().BoolVar(&mpf.MonthlySchedule, "monthly-schedule", false, "Print the monthly amortization schedule.")
+	mortgagePayoffCmd.Flags().BoolVar(&mpf.AnnualSchedule, "annual-schedule", false, "Print the annual amortization schedule.")
+
+	mortgagePayoffCmd.MarkFlagsMutuallyExclusive("monthly-schedule", "annual-schedule")
 }
