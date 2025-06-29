@@ -10,7 +10,7 @@ import (
 )
 
 var monthlyCostCmd = &cobra.Command{
-	Use:   "monthly-cost",
+	Use:   "monthly-costs",
 	Short: "Calculate the monthly costs of owning a home.",
 	Run:   runMonthlyCostCmd,
 }
