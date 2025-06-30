@@ -8,7 +8,6 @@ var RealEstateCmd = &cobra.Command{
 }
 
 func init() {
-	RealEstateCmd.AddCommand(cashNeededCmd)
 	RealEstateCmd.AddCommand(housePurchaseCmd)
 	RealEstateCmd.AddCommand(mortgagePayoffCmd)
 }
