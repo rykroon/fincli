@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/rykroon/ry-cli/cmd/investing"
-	"github.com/rykroon/ry-cli/cmd/realestate"
+	"github.com/rykroon/fincli/cmd/investing"
+	"github.com/rykroon/fincli/cmd/realestate"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "ry",
-	Short: "Ry CLI is a command line tool for Ryan.",
+	Use:   "fin",
+	Short: "Finance CLI: Do Finance.",
 	Long:  ``,
 }
 

@@ -1,2 +1,2 @@
-# ry-cli
-Personal CLI tool
+# fincli
+Finance CLI tool

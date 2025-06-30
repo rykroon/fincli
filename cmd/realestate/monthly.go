@@ -3,7 +3,7 @@ package realestate
 import (
 	"strings"
 
-	"github.com/rykroon/ry-cli/internal/mortgage"
+	"github.com/rykroon/fincli/internal/mortgage"
 	"github.com/spf13/cobra"
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"

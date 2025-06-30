@@ -1,4 +1,4 @@
-module github.com/rykroon/ry-cli
+module github.com/rykroon/fincli
 
 go 1.24.3
 
