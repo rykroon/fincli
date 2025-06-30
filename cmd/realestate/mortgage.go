@@ -25,6 +25,10 @@ type mortgagePayoffFlags struct {
 	AnnualSchedule      bool
 }
 
+func (mpf *mortgagePayoffFlags) HasExtraPayment() bool {
+	return mpf.ExtraAnnualPayment > 0 || mpf.ExtraMonthlyPayment > 0
+}
+
 func (mpf *mortgagePayoffFlags) ExtraPaymentStrategy() mortgage.ExtraPaymentStrategy {
 	if mpf.ExtraMonthlyPayment > 0 {
 		return mortgage.ExtraMonthlyPaymentStrategy(mpf.ExtraMonthlyPayment)
@@ -41,14 +45,17 @@ func runMortgageCmd(cmd *cobra.Command, args []string) {
 	fmt := message.NewPrinter(language.English)
 	i := mpf.Rate / 12 / 100
 	n := mpf.Years * 12
-	// eps := mortgage.NewMonthlyPaymentStrategy(mpf.ExtraPayment)
 	monthlyPayment, payments := mortgage.CalculatePayments(mpf.Amount, i, n, mpf.ExtraPaymentStrategy())
 	stats := mortgage.GetPaymentScheduleStats(payments)
-	fmt.Printf("Monthly Payment: %.2f\n", monthlyPayment)
+
+	if !mpf.HasExtraPayment() {
+		fmt.Printf("Monthly Payment: %.2f\n", monthlyPayment)
+	}
+
 	fmt.Printf("Total Amount Paid: $%.2f\n", stats.TotalPayments)
 	fmt.Printf("Total Interest Paid: $%.2f\n", stats.TotalInterest)
 	fmt.Printf("Pay off in %d years and %d month(s)\n", len(payments)/12, len(payments)%12)
-
+	fmt.Println("")
 	if mpf.MonthlySchedule {
 		// print headers
 		fmt.Printf(
