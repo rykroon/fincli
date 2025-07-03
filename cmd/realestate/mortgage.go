@@ -48,27 +48,26 @@ func runMortgageCmd(cmd *cobra.Command, args []string) {
 	fmt := message.NewPrinter(language.English)
 	i := mf.Rate / 12 / 100
 	n := int(mf.Years) * 12
-	monthlyPayment, payments := mortgage.CalculatePayments(mf.Amount, i, n, mf.ExtraPaymentStrategy())
-	stats := mortgage.GetPaymentScheduleStats(payments)
+	schedule := mortgage.CalculateSchedule(mf.Amount, i, n, mf.ExtraPaymentStrategy())
 
 	if !mf.HasExtraPayment() {
-		fmt.Printf("Monthly Payment: %.2f\n", monthlyPayment)
+		fmt.Printf("Monthly Payment: %.2f\n", schedule.MonthlyPayment)
 	}
 
-	fmt.Printf("Total Amount Paid: $%.2f\n", stats.TotalPayments)
-	fmt.Printf("Total Interest Paid: $%.2f\n", stats.TotalInterest)
-	fmt.Printf("Pay off in %d years and %d month(s)\n", len(payments)/12, len(payments)%12)
+	fmt.Printf("Total Amount Paid: $%.2f\n", schedule.TotalAmount)
+	fmt.Printf("Total Interest Paid: $%.2f\n", schedule.TotalInterest)
+	fmt.Printf("Pay off in %d years and %d month(s)\n", schedule.NumPeriods()/12, schedule.NumPeriods()%12)
 	fmt.Println("")
 
 	if mf.MonthlySchedule {
-		printMonthlySchedule(payments)
+		printMonthlySchedule(schedule)
 
 	} else if mf.AnnualSchedule {
-		printAnnualSchedule(payments)
+		printAnnualSchedule(schedule)
 	}
 }
 
-func printMonthlySchedule(payments []mortgage.Payment) {
+func printMonthlySchedule(schedule mortgage.Schedule) {
 	fmt := message.NewPrinter(language.English)
 	fmt.Printf(
 		"%-6s %-12s %-12s %-12s %-12s %-12s %-12s\n",
@@ -81,7 +80,7 @@ func printMonthlySchedule(payments []mortgage.Payment) {
 		"Balance",
 	)
 	fmt.Println(strings.Repeat("-", 89))
-	for _, payment := range payments {
+	for _, payment := range schedule.Payments {
 		fmt.Printf(
 			"%-6d $%-11.2f $%-14.2f $%-14.2f $%-11.2f $%-12.2f $%-11.2f\n",
 			payment.Period,
@@ -99,7 +98,7 @@ func printMonthlySchedule(payments []mortgage.Payment) {
 	}
 }
 
-func printAnnualSchedule(payments []mortgage.Payment) {
+func printAnnualSchedule(schedule mortgage.Schedule) {
 	fmt := message.NewPrinter(language.English)
 	fmt.Printf(
 		"%-6s %-12s %-12s %-12s %-12s %-12s %-12s\n",
@@ -118,7 +117,7 @@ func printAnnualSchedule(payments []mortgage.Payment) {
 	var annualInterest float64 = 0
 	var annualPayments float64 = 0
 
-	for _, payment := range payments {
+	for _, payment := range schedule.Payments {
 		annualPrincipal += payment.Principal
 		annualExtraPrincipal += payment.ExtraPrincipal
 		annualTotalPrincipal += payment.TotalPrincipal()
