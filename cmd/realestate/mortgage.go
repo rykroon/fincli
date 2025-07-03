@@ -77,7 +77,7 @@ func printMonthlySchedule(payments []mortgage.Payment) {
 		"Extra Principal",
 		"Total Principal",
 		"Interest",
-		"Total Payment",
+		"Total",
 		"Balance",
 	)
 	fmt.Println(strings.Repeat("-", 89))
@@ -89,7 +89,7 @@ func printMonthlySchedule(payments []mortgage.Payment) {
 			payment.ExtraPrincipal,
 			payment.TotalPrincipal(),
 			payment.Interest,
-			payment.Payment(),
+			payment.Total(),
 			payment.Balance,
 		)
 
@@ -108,7 +108,7 @@ func printAnnualSchedule(payments []mortgage.Payment) {
 		"Extra Principal",
 		"Total Principal",
 		"Interest",
-		"Total Payment",
+		"Total",
 		"Balance",
 	)
 	fmt.Println(strings.Repeat("-", 89))
@@ -123,7 +123,7 @@ func printAnnualSchedule(payments []mortgage.Payment) {
 		annualExtraPrincipal += payment.ExtraPrincipal
 		annualTotalPrincipal += payment.TotalPrincipal()
 		annualInterest += payment.Interest
-		annualPayments += payment.Payment()
+		annualPayments += payment.Total()
 
 		if payment.Period%12 == 0 {
 			fmt.Printf(

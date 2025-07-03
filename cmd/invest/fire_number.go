@@ -1,4 +1,4 @@
-package investing
+package invest
 
 import (
 	"github.com/spf13/cobra"

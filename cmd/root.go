@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/rykroon/fincli/cmd/investing"
+	"github.com/rykroon/fincli/cmd/invest"
 	"github.com/rykroon/fincli/cmd/realestate"
 	"github.com/spf13/cobra"
 )
@@ -24,5 +24,5 @@ func Execute() {
 
 func init() {
 	rootCmd.AddCommand(realestate.RealEstateCmd)
-	rootCmd.AddCommand(investing.InvestingCmd)
+	rootCmd.AddCommand(invest.InvestCmd)
 }

@@ -1,4 +1,4 @@
-package investing
+package invest
 
 import (
 	"fmt"

@@ -1,12 +1,12 @@
-package investing
+package invest
 
 import "github.com/spf13/cobra"
 
-var InvestingCmd = &cobra.Command{
+var InvestCmd = &cobra.Command{
 	Use:   "invest",
 	Short: "Investment calculators.",
 }
 
 func init() {
-	InvestingCmd.AddCommand(fireNumberCmd)
+	InvestCmd.AddCommand(fireNumberCmd)
 }

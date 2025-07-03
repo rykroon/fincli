@@ -20,7 +20,7 @@ func (p *Payment) TotalPrincipal() float64 {
 	return p.Principal + p.ExtraPrincipal
 }
 
-func (p *Payment) Payment() float64 {
+func (p *Payment) Total() float64 {
 	return p.TotalPrincipal() + p.Interest
 }
 
@@ -35,7 +35,7 @@ func GetPaymentScheduleStats(payments []Payment) paymentScheduleStats {
 
 	for _, p := range payments {
 		pss.TotalInterest += p.Interest
-		pss.TotalPayments += p.Payment()
+		pss.TotalPayments += p.Total()
 	}
 	pss.AverageMonthlyPayment = pss.TotalPayments / float64(len(payments))
 	return pss
