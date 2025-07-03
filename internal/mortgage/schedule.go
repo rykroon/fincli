@@ -14,10 +14,16 @@ type Schedule struct {
 
 func (s *Schedule) appendPayment(p Payment) {
 	s.Payments = append(s.Payments, p)
+	s.TotalAmount += p.Total()
+	s.TotalInterest += p.Interest
 }
 
 func (s *Schedule) NumPeriods() int {
 	return len(s.Payments)
+}
+
+func (s *Schedule) AverageMonthlyPayment() float64 {
+	return s.TotalAmount / float64(s.NumPeriods())
 }
 
 func CalculateSchedule(p float64, i float64, n int, extraPaymentStratgey ExtraPaymentStrategy) Schedule {
@@ -31,9 +37,14 @@ func CalculateSchedule(p float64, i float64, n int, extraPaymentStratgey ExtraPa
 		principal := schedule.MonthlyPayment - interest
 
 		extraPrincipal := extraPaymentStratgey(period, principal, interest)
+		// make sure the principal doesn't go above the balance.
 		if principal+extraPrincipal > balance {
-			// make sure the extra payment does not pay for more balance there is.
-			extraPrincipal = balance - principal
+			if principal > balance {
+				principal = balance
+				extraPrincipal = 0
+			} else {
+				extraPrincipal = balance - principal
+			}
 		}
 
 		balance -= principal + extraPrincipal
