@@ -26,7 +26,7 @@ func (s *Schedule) AverageMonthlyPayment() float64 {
 	return s.TotalAmount / float64(s.NumPeriods())
 }
 
-func CalculateSchedule(p float64, i float64, n int, extraPaymentStratgey ExtraPaymentStrategy) Schedule {
+func CalculateSchedule(p float64, i float64, n uint, extraPaymentStratgey ExtraPaymentStrategy) Schedule {
 	balance := p
 	schedule := Schedule{
 		MonthlyPayment:  CalculateMonthlyPayment(p, i, n),

@@ -2,7 +2,7 @@ package mortgage
 
 import "math"
 
-func CalculateMonthlyPayment(p float64, i float64, n int) float64 {
+func CalculateMonthlyPayment(p float64, i float64, n uint) float64 {
 	return p * ((i * math.Pow(1+i, float64(n))) / (math.Pow(1+i, float64(n)) - 1))
 }
 

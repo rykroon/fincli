@@ -18,7 +18,7 @@ var mortgageCmd = &cobra.Command{
 type mortgageFlags struct {
 	Amount              float64
 	Rate                float64
-	Years               uint16
+	Years               uint
 	ExtraMonthlyPayment float64
 	ExtraAnnualPayment  float64
 	MonthlySchedule     bool
@@ -47,7 +47,7 @@ var mf mortgageFlags
 func runMortgageCmd(cmd *cobra.Command, args []string) {
 	fmt := message.NewPrinter(language.English)
 	i := mf.Rate / 12 / 100
-	n := int(mf.Years) * 12
+	n := mf.Years * 12
 	schedule := mortgage.CalculateSchedule(mf.Amount, i, n, mf.ExtraPaymentStrategy())
 
 	if !mf.HasExtraPayment() {
@@ -148,7 +148,7 @@ func printAnnualSchedule(schedule mortgage.Schedule) {
 func init() {
 	mortgageCmd.Flags().Float64VarP(&mf.Amount, "amount", "a", 0, "The loan amount borrowed.")
 	mortgageCmd.Flags().Float64VarP(&mf.Rate, "rate", "r", 0, "Annual interest rate.")
-	mortgageCmd.Flags().Uint16VarP(&mf.Years, "years", "y", 30, "Loan term in years.")
+	mortgageCmd.Flags().UintVarP(&mf.Years, "years", "y", 30, "Loan term in years.")
 
 	mortgageCmd.MarkFlagRequired("amount")
 	mortgageCmd.MarkFlagRequired("rate")
