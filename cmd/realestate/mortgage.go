@@ -1,7 +1,6 @@
 package realestate
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/rykroon/fincli/internal/mortgage"
@@ -10,23 +9,6 @@ import (
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )
-
-type DecimalFlag struct {
-	decimal.Decimal
-}
-
-func (df *DecimalFlag) Set(s string) error {
-	d, err := decimal.NewFromString(s)
-	if err != nil {
-		return fmt.Errorf("Not a valid decimal: %w", err)
-	}
-	df.Decimal = d
-	return nil
-}
-
-func (df *DecimalFlag) Type() string {
-	return "decimal"
-}
 
 var mortgageCmd = &cobra.Command{
 	Use:   "mortgage",
