@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/rykroon/fincli/internal/finance"
 	"github.com/rykroon/fincli/internal/mortgage"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
@@ -35,27 +36,28 @@ var mortgageCmd = &cobra.Command{
 }
 
 type mortgageFlags struct {
-	Amount              DecimalFlag
+	Amount              finance.Money
 	Rate                DecimalFlag
 	Years               DecimalFlag
-	ExtraMonthlyPayment DecimalFlag
-	ExtraAnnualPayment  DecimalFlag
+	ExtraMonthlyPayment finance.Money
+	ExtraAnnualPayment  finance.Money
 	MonthlySchedule     bool
 	AnnualSchedule      bool
 }
 
 func (mf *mortgageFlags) HasExtraPayment() bool {
-	return mf.ExtraAnnualPayment.GreaterThan(decimal.Zero) || mf.ExtraMonthlyPayment.GreaterThan(decimal.Zero)
+	zero := finance.NewMoneyFromInt(0)
+	return mf.ExtraAnnualPayment.GreaterThan(zero) || mf.ExtraMonthlyPayment.GreaterThan(zero)
 }
 
 func (mf *mortgageFlags) ExtraPaymentStrategy() mortgage.ExtraPaymentStrategy {
-	// return mortgage.PrincipalMatchInterest()
-	if mf.ExtraMonthlyPayment.GreaterThan(decimal.Zero) && mf.ExtraAnnualPayment.GreaterThan(decimal.Zero) {
-		return mortgage.ExtraMonthlyAndAnnualPayment(mf.ExtraMonthlyPayment.Decimal, mf.ExtraAnnualPayment.Decimal)
-	} else if mf.ExtraMonthlyPayment.GreaterThan(decimal.Zero) {
-		return mortgage.ExtraMonthlyPayment(mf.ExtraMonthlyPayment.Decimal)
-	} else if mf.ExtraAnnualPayment.GreaterThan(decimal.Zero) {
-		return mortgage.ExtraAnnualPayment(mf.ExtraAnnualPayment.Decimal)
+	zero := finance.NewMoneyFromInt(0)
+	if mf.ExtraMonthlyPayment.GreaterThan(zero) && mf.ExtraAnnualPayment.GreaterThan(zero) {
+		return mortgage.ExtraMonthlyAndAnnualPayment(mf.ExtraMonthlyPayment.Decimal(), mf.ExtraAnnualPayment.Decimal())
+	} else if mf.ExtraMonthlyPayment.GreaterThan(zero) {
+		return mortgage.ExtraMonthlyPayment(mf.ExtraMonthlyPayment.Decimal())
+	} else if mf.ExtraAnnualPayment.GreaterThan(zero) {
+		return mortgage.ExtraAnnualPayment(mf.ExtraAnnualPayment.Decimal())
 	} else {
 		return mortgage.NoExtraPayment()
 	}
@@ -68,7 +70,7 @@ func runMortgageCmd(cmd *cobra.Command, args []string) {
 	twelve := decimal.NewFromInt(12)
 	i := mf.Rate.Div(twelve).Div(decimal.NewFromInt(100))
 	n := mf.Years.Mul(twelve)
-	schedule := mortgage.CalculateSchedule(mf.Amount.Decimal, i, n, mf.ExtraPaymentStrategy())
+	schedule := mortgage.CalculateSchedule(mf.Amount.Decimal(), i, n, mf.ExtraPaymentStrategy())
 
 	if !mf.HasExtraPayment() {
 		fmt.Printf("Monthly Payment: %v\n", schedule.MonthlyPayment.StringFixed(2))
@@ -175,10 +177,10 @@ func init() {
 	mortgageCmd.MarkFlagRequired("rate")
 
 	// optional flags
-	mf.ExtraMonthlyPayment = DecimalFlag{decimal.Zero}
+	mf.ExtraMonthlyPayment = finance.NewMoneyFromInt(0)
 	mortgageCmd.Flags().Var(&mf.ExtraMonthlyPayment, "extra-monthly", "Extra monthly payment.")
 
-	mf.ExtraAnnualPayment = DecimalFlag{decimal.Zero}
+	mf.ExtraAnnualPayment = finance.NewMoneyFromInt(0)
 	mortgageCmd.Flags().Var(&mf.ExtraAnnualPayment, "extra-annual", "Extra annual payment.")
 
 	mortgageCmd.Flags().BoolVar(&mf.MonthlySchedule, "monthly-schedule", false, "Print the monthly amortization schedule.")

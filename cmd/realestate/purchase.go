@@ -1,6 +1,7 @@
 package realestate
 
 import (
+	"github.com/rykroon/fincli/internal/finance"
 	"github.com/rykroon/fincli/internal/mortgage"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
@@ -15,28 +16,28 @@ var purchaseCmd = &cobra.Command{
 }
 
 type purchaseFlags struct {
-	Price              DecimalFlag
+	Price              finance.Money
 	DownPaymentPercent DecimalFlag
 	Rate               DecimalFlag
 	Years              DecimalFlag
 	ClosingPercent     DecimalFlag
-	Escrow             DecimalFlag
-	AnnualTax          DecimalFlag
-	AnnualInsurance    DecimalFlag
+	Escrow             finance.Money
+	AnnualTax          finance.Money
+	AnnualInsurance    finance.Money
 	PmiRate            DecimalFlag
 	MonthlyHoa         DecimalFlag
 }
 
 func (pf *purchaseFlags) DownPayment() decimal.Decimal {
-	return pf.Price.Mul(pf.DownPaymentPercent.Div(decimal.NewFromInt(100)))
+	return pf.Price.Decimal().Mul(pf.DownPaymentPercent.Div(decimal.NewFromInt(100)))
 }
 
 func (pf *purchaseFlags) LoanAmount() decimal.Decimal {
-	return pf.Price.Sub(pf.DownPayment())
+	return pf.Price.Decimal().Sub(pf.DownPayment())
 }
 
 func (pf *purchaseFlags) ClosingCosts() decimal.Decimal {
-	return pf.Price.Mul(pf.ClosingPercent.Div(decimal.NewFromInt(100)))
+	return pf.Price.Decimal().Mul(pf.ClosingPercent.Div(decimal.NewFromInt(100)))
 }
 
 var pf purchaseFlags
@@ -44,7 +45,7 @@ var pf purchaseFlags
 func runPurchaseCmd(cmd *cobra.Command, args []string) {
 	fmt := message.NewPrinter(language.English)
 	// Print Summary
-	fmt.Printf("Home Price: $%v\n", pf.Price.StringFixed(2))
+	fmt.Printf("Home Price: %v\n", pf.Price)
 	fmt.Printf("Down Payment (%v%%): $%v\n", pf.DownPaymentPercent.StringFixed(0), pf.DownPayment().StringFixed(0))
 	fmt.Printf("Loan Amount: $%v\n", pf.LoanAmount().StringFixed(2))
 	fmt.Println("")
@@ -52,8 +53,8 @@ func runPurchaseCmd(cmd *cobra.Command, args []string) {
 	// One-Time costs
 	fmt.Printf("--- One-Time costs ---\n")
 	fmt.Printf("Closing Costs (%v%%): %v\n", pf.ClosingPercent.StringFixed(0), pf.ClosingCosts().StringFixed(2))
-	fmt.Printf("Escrow Prepaids: $%v\n", pf.Escrow.StringFixed(2))
-	totalUpfront := decimal.Sum(pf.DownPayment(), pf.ClosingCosts(), pf.Escrow.Decimal)
+	fmt.Printf("Escrow Prepaids: $%v\n", pf.Escrow)
+	totalUpfront := decimal.Sum(pf.DownPayment(), pf.ClosingCosts(), pf.Escrow.Decimal())
 	fmt.Printf("TOTAL UPFRONT: $%v\n", totalUpfront.StringFixed(2))
 	fmt.Println("")
 
@@ -62,12 +63,12 @@ func runPurchaseCmd(cmd *cobra.Command, args []string) {
 
 	// monthly costs
 	fmt.Printf("--- Monthly Costs ---\n")
-	p := pf.Price.Sub(pf.DownPayment())
+	p := pf.Price.Decimal().Sub(pf.DownPayment())
 	i := pf.Rate.Div(twelve).Div(oneHundred)
 	n := pf.Years.Mul(twelve)
 	monthlyMortgage := mortgage.CalculateMonthlyPayment(p, i, n)
-	monthlyTaxes := pf.AnnualTax.Div(twelve)
-	monthlyInsurance := pf.AnnualInsurance.Div(twelve)
+	monthlyTaxes := pf.AnnualTax.Decimal().Div(twelve)
+	monthlyInsurance := pf.AnnualInsurance.Decimal().Div(twelve)
 	monthlyPMI := pf.LoanAmount().Mul(pf.PmiRate.Decimal).Div(oneHundred).Div(twelve)
 
 	fmt.Printf("Mortgage Payment: $%v\n", monthlyMortgage.StringFixed(2))
