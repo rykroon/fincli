@@ -1,53 +1,53 @@
 package mortgage
 
 import (
-	"math"
+	"github.com/shopspring/decimal"
 )
 
 type Schedule struct {
-	MonthlyPayment  float64
-	StartingBalance float64
+	MonthlyPayment  decimal.Decimal
+	StartingBalance decimal.Decimal
 	Payments        []Payment
-	TotalAmount     float64
-	TotalInterest   float64
+	TotalAmount     decimal.Decimal
+	TotalInterest   decimal.Decimal
 }
 
 func (s *Schedule) appendPayment(p Payment) {
 	s.Payments = append(s.Payments, p)
-	s.TotalAmount += p.Total()
-	s.TotalInterest += p.Interest
+	s.TotalAmount = s.TotalAmount.Add(p.Total())
+	s.TotalInterest = s.TotalInterest.Add(p.Interest)
 }
 
-func (s *Schedule) NumPeriods() int {
-	return len(s.Payments)
+func (s *Schedule) NumPeriods() decimal.Decimal {
+	return decimal.NewFromInt(int64(len(s.Payments)))
 }
 
-func (s *Schedule) AverageMonthlyPayment() float64 {
-	return s.TotalAmount / float64(s.NumPeriods())
+func (s *Schedule) AverageMonthlyPayment() decimal.Decimal {
+	return s.TotalAmount.Div(s.NumPeriods())
 }
 
-func CalculateSchedule(p float64, i float64, n int, extraPaymentStratgey ExtraPaymentStrategy) Schedule {
+func CalculateSchedule(p decimal.Decimal, i decimal.Decimal, n decimal.Decimal, extraPaymentStratgey ExtraPaymentStrategy) Schedule {
 	balance := p
 	schedule := Schedule{
 		MonthlyPayment:  CalculateMonthlyPayment(p, i, n),
 		StartingBalance: balance,
 	}
-	for period := 1; math.Round(balance) > 0; period++ {
-		interest := balance * i
-		principal := schedule.MonthlyPayment - interest
+	for period := 1; balance.GreaterThan(decimal.Zero); period++ {
+		interest := balance.Mul(i)
+		principal := schedule.MonthlyPayment.Sub(interest)
 
 		extraPrincipal := extraPaymentStratgey(period, principal, interest)
 		// make sure the principal doesn't go above the balance.
-		if principal+extraPrincipal > balance {
-			if principal > balance {
+		if principal.Add(extraPrincipal).GreaterThan(balance) {
+			if principal.GreaterThan(balance) {
 				principal = balance
-				extraPrincipal = 0
+				extraPrincipal = decimal.Zero
 			} else {
-				extraPrincipal = balance - principal
+				extraPrincipal = balance.Sub(principal)
 			}
 		}
 
-		balance -= principal + extraPrincipal
+		balance = balance.Sub(principal.Add(extraPrincipal))
 		p := Payment{
 			Period:         period,
 			Principal:      principal,

@@ -1,43 +1,36 @@
 package mortgage
 
-type ExtraPaymentStrategy func(int, float64, float64) float64
+import "github.com/shopspring/decimal"
+
+type ExtraPaymentStrategy func(int, decimal.Decimal, decimal.Decimal) decimal.Decimal
 
 func NoExtraPayment() ExtraPaymentStrategy {
-	return func(period int, principal float64, interest float64) float64 {
-		return 0
+	return func(period int, principal decimal.Decimal, interest decimal.Decimal) decimal.Decimal {
+		return decimal.Zero
 	}
 }
 
-func ExtraMonthlyPayment(payment float64) ExtraPaymentStrategy {
-	return func(period int, principal float64, interest float64) float64 {
+func ExtraMonthlyPayment(payment decimal.Decimal) ExtraPaymentStrategy {
+	return func(period int, principal decimal.Decimal, interest decimal.Decimal) decimal.Decimal {
 		return payment
 	}
 }
 
-func ExtraAnnualPayment(payment float64) ExtraPaymentStrategy {
-	return func(period int, principal float64, interest float64) float64 {
+func ExtraAnnualPayment(payment decimal.Decimal) ExtraPaymentStrategy {
+	return func(period int, principal decimal.Decimal, interest decimal.Decimal) decimal.Decimal {
 		if period%12 == 0 {
 			return payment
 		}
-		return 0
+		return decimal.Zero
 	}
 }
 
-func ExtraMonthlyAndAnnualPayment(monthlyPayment float64, annualPayment float64) ExtraPaymentStrategy {
-	return func(period int, principal float64, interest float64) float64 {
+func ExtraMonthlyAndAnnualPayment(monthlyPayment decimal.Decimal, annualPayment decimal.Decimal) ExtraPaymentStrategy {
+	return func(period int, principal decimal.Decimal, interest decimal.Decimal) decimal.Decimal {
 		payment := monthlyPayment
 		if period%12 == 0 {
-			payment += annualPayment
+			payment = payment.Add(annualPayment)
 		}
 		return payment
-	}
-}
-
-func PrincipalMatchInterest() ExtraPaymentStrategy {
-	return func(period int, principal float64, interest float64) float64 {
-		if principal < interest {
-			return interest - principal
-		}
-		return 0
 	}
 }
