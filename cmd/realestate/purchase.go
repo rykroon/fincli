@@ -17,10 +17,10 @@ var purchaseCmd = &cobra.Command{
 
 type purchaseFlags struct {
 	Price              finance.Money
-	DownPaymentPercent DecimalFlag
+	DownPaymentPercent finance.Percent
 	Rate               DecimalFlag
 	Years              DecimalFlag
-	ClosingPercent     DecimalFlag
+	ClosingPercent     finance.Percent
 	Escrow             finance.Money
 	AnnualTax          finance.Money
 	AnnualInsurance    finance.Money
@@ -29,7 +29,7 @@ type purchaseFlags struct {
 }
 
 func (pf *purchaseFlags) DownPayment() decimal.Decimal {
-	return pf.Price.Decimal().Mul(pf.DownPaymentPercent.Div(decimal.NewFromInt(100)))
+	return pf.DownPaymentPercent.ApplyTo(pf.Price.Decimal())
 }
 
 func (pf *purchaseFlags) LoanAmount() decimal.Decimal {
@@ -37,7 +37,7 @@ func (pf *purchaseFlags) LoanAmount() decimal.Decimal {
 }
 
 func (pf *purchaseFlags) ClosingCosts() decimal.Decimal {
-	return pf.Price.Decimal().Mul(pf.ClosingPercent.Div(decimal.NewFromInt(100)))
+	return pf.ClosingPercent.ApplyTo(pf.Price.Decimal())
 }
 
 var pf purchaseFlags
@@ -46,13 +46,13 @@ func runPurchaseCmd(cmd *cobra.Command, args []string) {
 	fmt := message.NewPrinter(language.English)
 	// Print Summary
 	fmt.Printf("Home Price: %v\n", pf.Price)
-	fmt.Printf("Down Payment (%v%%): $%v\n", pf.DownPaymentPercent.StringFixed(0), pf.DownPayment().StringFixed(0))
+	fmt.Printf("Down Payment (%v): $%v\n", pf.DownPaymentPercent, pf.DownPayment().StringFixed(0))
 	fmt.Printf("Loan Amount: $%v\n", pf.LoanAmount().StringFixed(2))
 	fmt.Println("")
 
 	// One-Time costs
 	fmt.Printf("--- One-Time costs ---\n")
-	fmt.Printf("Closing Costs (%v%%): %v\n", pf.ClosingPercent.StringFixed(0), pf.ClosingCosts().StringFixed(2))
+	fmt.Printf("Closing Costs (%v): %v\n", pf.ClosingPercent, pf.ClosingCosts().StringFixed(2))
 	fmt.Printf("Escrow Prepaids: $%v\n", pf.Escrow)
 	totalUpfront := decimal.Sum(pf.DownPayment(), pf.ClosingCosts(), pf.Escrow.Decimal())
 	fmt.Printf("TOTAL UPFRONT: $%v\n", totalUpfront.StringFixed(2))
@@ -89,12 +89,12 @@ func runPurchaseCmd(cmd *cobra.Command, args []string) {
 
 func init() {
 	purchaseCmd.Flags().VarP(&pf.Price, "price", "p", "Home price")
-	pf.DownPaymentPercent = DecimalFlag{decimal.NewFromInt(20)}
+	pf.DownPaymentPercent = finance.NewPercentFromInt(20)
 	purchaseCmd.Flags().VarP(&pf.DownPaymentPercent, "down", "d", "Down payment percent (default: 20)")
 	purchaseCmd.Flags().VarP(&pf.Rate, "rate", "r", "Mortgage interest rate")
 	pf.Years = DecimalFlag{decimal.NewFromInt(30)}
 	purchaseCmd.Flags().VarP(&pf.Years, "years", "y", "Mortgage term in years (default: 30)")
-	pf.ClosingPercent = DecimalFlag{decimal.NewFromInt(3)}
+	pf.ClosingPercent = finance.NewPercentFromInt(3)
 	purchaseCmd.Flags().Var(&pf.ClosingPercent, "closing-percent", "Estimated closing costs (% of price, default: 3)")
 	purchaseCmd.Flags().Var(&pf.Escrow, "escrows", "Estimate of prepaid escrow costs")
 	purchaseCmd.Flags().VarP(&pf.AnnualTax, "taxes", "t", "Annual property taxes")
