@@ -85,21 +85,24 @@ func runPurchaseCmd(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	purchaseCmd.Flags().VarP(cli.NewDecimalVar(&pf.Price), "price", "p", "Home price")
+	cli.AddDecimalVarP(purchaseCmd.Flags(), &pf.Price, "price", "p", "Home price")
 	pf.DownPaymentPercent = decimal.NewFromInt(20)
-	purchaseCmd.Flags().VarP(cli.NewDecimalVar(&pf.DownPaymentPercent), "down", "d", "Down payment percent (default: 20)")
-	purchaseCmd.Flags().VarP(cli.NewDecimalVar(&pf.Rate), "rate", "r", "Mortgage interest rate")
+	cli.AddDecimalVarP(purchaseCmd.Flags(), &pf.DownPaymentPercent, "down", "d", "Down payment percent")
+
+	cli.AddDecimalVarP(purchaseCmd.Flags(), &pf.Rate, "rate", "r", "Mortgage interest rate")
 	pf.Years = decimal.NewFromInt(30)
-	purchaseCmd.Flags().VarP(cli.NewDecimalVar(&pf.Years), "years", "y", "Mortgage term in years (default: 30)")
+	cli.AddDecimalVarP(purchaseCmd.Flags(), &pf.Years, "years", "y", "Mortgage term in years")
 	pf.ClosingPercent = decimal.NewFromInt(3)
-	purchaseCmd.Flags().Var(cli.NewDecimalVar(&pf.ClosingPercent), "closing-percent", "Estimated closing costs (% of price, default: 3)")
-	purchaseCmd.Flags().Var(cli.NewDecimalVar(&pf.Escrow), "escrows", "Estimate of prepaid escrow costs")
-	purchaseCmd.Flags().VarP(cli.NewDecimalVar(&pf.AnnualTax), "taxes", "t", "Annual property taxes")
-	purchaseCmd.Flags().VarP(cli.NewDecimalVar(&pf.AnnualInsurance), "insurance", "i", "Annual homeowners insurance")
-	purchaseCmd.Flags().Var(cli.NewDecimalVar(&pf.PmiRate), "pmi", "PMI rate")
-	purchaseCmd.Flags().Var(cli.NewDecimalVar(&pf.MonthlyHoa), "hoa", "Monthly HOA fee")
+	cli.AddDecimalVar(purchaseCmd.Flags(), &pf.ClosingPercent, "closing-percent", "Estimated closing costs as a percent")
+	cli.AddDecimalVar(purchaseCmd.Flags(), &pf.Escrow, "escrows", "Estimate of prepaid escrow costs")
+	cli.AddDecimalVarP(purchaseCmd.Flags(), &pf.AnnualTax, "taxes", "t", "Annual property taxes")
+	cli.AddDecimalVarP(purchaseCmd.Flags(), &pf.AnnualInsurance, "insurance", "i", "Annual homeowners insurance")
+	cli.AddDecimalVar(purchaseCmd.Flags(), &pf.PmiRate, "pmi", "PMI rate")
+	cli.AddDecimalVar(purchaseCmd.Flags(), &pf.MonthlyHoa, "hoa", "Monthly HOA fee")
 
 	purchaseCmd.MarkFlagRequired("price")
 	purchaseCmd.MarkFlagRequired("rate")
 
+	purchaseCmd.Flags().SortFlags = false
+	purchaseCmd.Flags().PrintDefaults()
 }
