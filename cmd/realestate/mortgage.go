@@ -1,10 +1,9 @@
 package realestate
 
 import (
-	"fmt"
 	"strings"
 
-	"github.com/rykroon/fincli/internal/flag"
+	"github.com/rykroon/fincli/internal/cli"
 	"github.com/rykroon/fincli/internal/mortgage"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
@@ -19,11 +18,11 @@ var mortgageCmd = &cobra.Command{
 }
 
 type mortgageFlags struct {
-	Amount              flag.DecimalFlag
-	Rate                flag.DecimalFlag
-	Years               flag.DecimalFlag
-	ExtraMonthlyPayment flag.DecimalFlag
-	ExtraAnnualPayment  flag.DecimalFlag
+	Amount              decimal.Decimal
+	Rate                decimal.Decimal
+	Years               decimal.Decimal
+	ExtraMonthlyPayment decimal.Decimal
+	ExtraAnnualPayment  decimal.Decimal
 	MonthlySchedule     bool
 	AnnualSchedule      bool
 }
@@ -35,11 +34,11 @@ func (mf *mortgageFlags) HasExtraPayment() bool {
 func (mf *mortgageFlags) ExtraPaymentStrategy() mortgage.ExtraPaymentStrategy {
 	// return mortgage.PrincipalMatchInterest()
 	if mf.ExtraMonthlyPayment.GreaterThan(decimal.Zero) && mf.ExtraAnnualPayment.GreaterThan(decimal.Zero) {
-		return mortgage.ExtraMonthlyAndAnnualPayment(mf.ExtraMonthlyPayment.Decimal, mf.ExtraAnnualPayment.Decimal)
+		return mortgage.ExtraMonthlyAndAnnualPayment(mf.ExtraMonthlyPayment, mf.ExtraAnnualPayment)
 	} else if mf.ExtraMonthlyPayment.GreaterThan(decimal.Zero) {
-		return mortgage.ExtraMonthlyPayment(mf.ExtraMonthlyPayment.Decimal)
+		return mortgage.ExtraMonthlyPayment(mf.ExtraMonthlyPayment)
 	} else if mf.ExtraAnnualPayment.GreaterThan(decimal.Zero) {
-		return mortgage.ExtraAnnualPayment(mf.ExtraAnnualPayment.Decimal)
+		return mortgage.ExtraAnnualPayment(mf.ExtraAnnualPayment)
 	} else {
 		return mortgage.NoExtraPayment()
 	}
@@ -49,18 +48,19 @@ var mf mortgageFlags
 
 func runMortgageCmd(cmd *cobra.Command, args []string) {
 	twelve := decimal.NewFromInt(12)
-	i := mf.Rate.Div(twelve).Div(decimal.NewFromInt(100))
-	n := mf.Years.Mul(twelve)
-	schedule := mortgage.CalculateSchedule(mf.Amount.Decimal, i, n, mf.ExtraPaymentStrategy())
+	oneHundred := decimal.NewFromInt(100)
+	monthlyRate := mf.Rate.Div(oneHundred).Div(twelve)
+	numPeriods := mf.Years.Mul(twelve)
+	schedule := mortgage.CalculateSchedule(mf.Amount, monthlyRate, numPeriods, mf.ExtraPaymentStrategy())
 
 	if !mf.HasExtraPayment() {
-		fmt.Printf("Monthly Payment: %v\n", schedule.MonthlyPayment.StringFixed(2))
+		cmd.Println("Monthly Payment: $", schedule.MonthlyPayment.StringFixed(2))
 	}
 
-	fmt.Printf("Total Amount Paid: $%v\n", schedule.TotalAmount.StringFixed(2))
-	fmt.Printf("Total Interest Paid: $%v\n", schedule.TotalInterest.StringFixed(2))
-	fmt.Printf("Pay off in %v years and %v month(s)\n", schedule.NumPeriods().Div(twelve).StringFixed(0), schedule.NumPeriods().Mod(twelve))
-	fmt.Println("")
+	cmd.Println("Total Amount Paid: $", schedule.TotalAmount.StringFixed(2))
+	cmd.Println("Total Interest Paid: $", schedule.TotalInterest.StringFixed(2))
+	cmd.Printf("Pay off in %v years and %v month(s)\n", schedule.NumPeriods().Div(twelve).StringFixed(0), schedule.NumPeriods().Mod(twelve))
+	cmd.Println("")
 
 	if mf.MonthlySchedule {
 		printMonthlySchedule(schedule)
@@ -149,20 +149,17 @@ func printAnnualSchedule(schedule mortgage.Schedule) {
 }
 
 func init() {
-	mortgageCmd.Flags().VarP(&mf.Amount, "amount", "a", "The loan amount borrowed.")
-	mortgageCmd.Flags().VarP(&mf.Rate, "rate", "r", "Annual interest rate.")
-	mf.Years = flag.DecimalFlag{decimal.NewFromInt(30)}
-	mortgageCmd.Flags().VarP(&mf.Years, "years", "y", "Loan term in years.")
+	mortgageCmd.Flags().VarP(cli.NewDecimalVar(&mf.Amount), "amount", "a", "The loan amount borrowed.")
+	mortgageCmd.Flags().VarP(cli.NewDecimalVar(&mf.Rate), "rate", "r", "Annual interest rate.")
+	mf.Years = decimal.NewFromInt(30)
+	mortgageCmd.Flags().VarP(cli.NewDecimalVar(&mf.Years), "years", "y", "Loan term in years.")
 
 	mortgageCmd.MarkFlagRequired("amount")
 	mortgageCmd.MarkFlagRequired("rate")
 
 	// optional flags
-	mf.ExtraMonthlyPayment = flag.DecimalFlag{decimal.Zero}
-	mortgageCmd.Flags().Var(&mf.ExtraMonthlyPayment, "extra-monthly", "Extra monthly payment.")
-
-	mf.ExtraAnnualPayment = flag.DecimalFlag{decimal.Zero}
-	mortgageCmd.Flags().Var(&mf.ExtraAnnualPayment, "extra-annual", "Extra annual payment.")
+	mortgageCmd.Flags().Var(cli.NewDecimalVar(&mf.ExtraMonthlyPayment), "extra-monthly", "Extra monthly payment.")
+	mortgageCmd.Flags().Var(cli.NewDecimalVar(&mf.ExtraAnnualPayment), "extra-annual", "Extra annual payment.")
 
 	mortgageCmd.Flags().BoolVar(&mf.MonthlySchedule, "monthly-schedule", false, "Print the monthly amortization schedule.")
 	mortgageCmd.Flags().BoolVar(&mf.AnnualSchedule, "annual-schedule", false, "Print the annual amortization schedule.")
