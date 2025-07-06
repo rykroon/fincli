@@ -5,9 +5,9 @@ import (
 )
 
 func CalculateMonthlyPayment(p decimal.Decimal, i decimal.Decimal, n decimal.Decimal) decimal.Decimal {
+	// P * ((i * (1+i)^n) / ((1+i)^n - 1))
 	one := decimal.NewFromInt(1)
 	return p.Mul((i.Mul(i.Add(one).Pow(n))).Div(i.Add(one).Pow(n).Sub(one)))
-	// return p * ((i * math.Pow(1+i, float64(n))) / (math.Pow(1+i, float64(n)) - 1))
 }
 
 type Payment struct {
