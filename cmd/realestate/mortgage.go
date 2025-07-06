@@ -1,8 +1,10 @@
 package realestate
 
 import (
+	"fmt"
 	"strings"
 
+	"github.com/rykroon/fincli/internal/flag"
 	"github.com/rykroon/fincli/internal/mortgage"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
@@ -17,11 +19,11 @@ var mortgageCmd = &cobra.Command{
 }
 
 type mortgageFlags struct {
-	Amount              DecimalFlag
-	Rate                DecimalFlag
-	Years               DecimalFlag
-	ExtraMonthlyPayment DecimalFlag
-	ExtraAnnualPayment  DecimalFlag
+	Amount              flag.DecimalFlag
+	Rate                flag.DecimalFlag
+	Years               flag.DecimalFlag
+	ExtraMonthlyPayment flag.DecimalFlag
+	ExtraAnnualPayment  flag.DecimalFlag
 	MonthlySchedule     bool
 	AnnualSchedule      bool
 }
@@ -46,7 +48,6 @@ func (mf *mortgageFlags) ExtraPaymentStrategy() mortgage.ExtraPaymentStrategy {
 var mf mortgageFlags
 
 func runMortgageCmd(cmd *cobra.Command, args []string) {
-	fmt := message.NewPrinter(language.English)
 	twelve := decimal.NewFromInt(12)
 	i := mf.Rate.Div(twelve).Div(decimal.NewFromInt(100))
 	n := mf.Years.Mul(twelve)
@@ -150,17 +151,17 @@ func printAnnualSchedule(schedule mortgage.Schedule) {
 func init() {
 	mortgageCmd.Flags().VarP(&mf.Amount, "amount", "a", "The loan amount borrowed.")
 	mortgageCmd.Flags().VarP(&mf.Rate, "rate", "r", "Annual interest rate.")
-	mf.Years = DecimalFlag{decimal.NewFromInt(30)}
+	mf.Years = flag.DecimalFlag{decimal.NewFromInt(30)}
 	mortgageCmd.Flags().VarP(&mf.Years, "years", "y", "Loan term in years.")
 
 	mortgageCmd.MarkFlagRequired("amount")
 	mortgageCmd.MarkFlagRequired("rate")
 
 	// optional flags
-	mf.ExtraMonthlyPayment = DecimalFlag{decimal.Zero}
+	mf.ExtraMonthlyPayment = flag.DecimalFlag{decimal.Zero}
 	mortgageCmd.Flags().Var(&mf.ExtraMonthlyPayment, "extra-monthly", "Extra monthly payment.")
 
-	mf.ExtraAnnualPayment = DecimalFlag{decimal.Zero}
+	mf.ExtraAnnualPayment = flag.DecimalFlag{decimal.Zero}
 	mortgageCmd.Flags().Var(&mf.ExtraAnnualPayment, "extra-annual", "Extra annual payment.")
 
 	mortgageCmd.Flags().BoolVar(&mf.MonthlySchedule, "monthly-schedule", false, "Print the monthly amortization schedule.")

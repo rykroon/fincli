@@ -1,6 +1,8 @@
 package realestate
 
 import (
+	"github.com/rykroon/fincli/internal/flag"
+	"github.com/rykroon/fincli/internal/format"
 	"github.com/rykroon/fincli/internal/mortgage"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
@@ -15,20 +17,20 @@ var purchaseCmd = &cobra.Command{
 }
 
 type purchaseFlags struct {
-	Price              DecimalFlag
-	DownPaymentPercent DecimalFlag
-	Rate               DecimalFlag
-	Years              DecimalFlag
-	ClosingPercent     DecimalFlag
-	Escrow             DecimalFlag
-	AnnualTax          DecimalFlag
-	AnnualInsurance    DecimalFlag
-	PmiRate            DecimalFlag
-	MonthlyHoa         DecimalFlag
+	Price              flag.DecimalFlag
+	DownPaymentPercent flag.PercentFlag
+	Rate               flag.PercentFlag
+	Years              flag.DecimalFlag
+	ClosingPercent     flag.PercentFlag
+	Escrow             flag.DecimalFlag
+	AnnualTax          flag.DecimalFlag
+	AnnualInsurance    flag.DecimalFlag
+	PmiRate            flag.DecimalFlag
+	MonthlyHoa         flag.DecimalFlag
 }
 
 func (pf *purchaseFlags) DownPayment() decimal.Decimal {
-	return pf.Price.Mul(pf.DownPaymentPercent.Div(decimal.NewFromInt(100)))
+	return pf.Price.Mul(pf.DownPaymentPercent.Decimal)
 }
 
 func (pf *purchaseFlags) LoanAmount() decimal.Decimal {
@@ -36,7 +38,7 @@ func (pf *purchaseFlags) LoanAmount() decimal.Decimal {
 }
 
 func (pf *purchaseFlags) ClosingCosts() decimal.Decimal {
-	return pf.Price.Mul(pf.ClosingPercent.Div(decimal.NewFromInt(100)))
+	return pf.Price.Mul(pf.ClosingPercent.Decimal)
 }
 
 var pf purchaseFlags
@@ -44,31 +46,30 @@ var pf purchaseFlags
 func runPurchaseCmd(cmd *cobra.Command, args []string) {
 	fmt := message.NewPrinter(language.English)
 	// Print Summary
-	fmt.Printf("Home Price: $%v\n", pf.Price.StringFixed(2))
-	fmt.Printf("Down Payment (%v%%): $%v\n", pf.DownPaymentPercent.StringFixed(0), pf.DownPayment().StringFixed(0))
-	fmt.Printf("Loan Amount: $%v\n", pf.LoanAmount().StringFixed(2))
+	fmt.Printf("Home Price: %v\n", format.FormatMoney(pf.Price.Decimal))
+	fmt.Printf("Down Payment (%v): %v\n", format.FormatPercent(pf.DownPaymentPercent.Decimal), format.FormatMoney(pf.DownPayment()))
+	fmt.Printf("Loan Amount: %v\n", format.FormatMoney(pf.LoanAmount()))
 	fmt.Println("")
 
 	// One-Time costs
 	fmt.Printf("--- One-Time costs ---\n")
-	fmt.Printf("Closing Costs (%v%%): %v\n", pf.ClosingPercent.StringFixed(0), pf.ClosingCosts().StringFixed(2))
-	fmt.Printf("Escrow Prepaids: $%v\n", pf.Escrow.StringFixed(2))
+	fmt.Printf("Closing Costs (%v): %v\n", format.FormatPercent(pf.ClosingPercent.Decimal), format.FormatMoney(pf.ClosingCosts()))
+	fmt.Printf("Escrow Prepaids: %v\n", format.FormatMoney(pf.Escrow.Decimal))
 	totalUpfront := decimal.Sum(pf.DownPayment(), pf.ClosingCosts(), pf.Escrow.Decimal)
-	fmt.Printf("TOTAL UPFRONT: $%v\n", totalUpfront.StringFixed(2))
+	fmt.Printf("TOTAL UPFRONT: %v\n", format.FormatMoney(totalUpfront))
 	fmt.Println("")
 
 	twelve := decimal.NewFromInt(12)
-	oneHundred := decimal.NewFromFloat(100)
 
 	// monthly costs
 	fmt.Printf("--- Monthly Costs ---\n")
 	p := pf.Price.Sub(pf.DownPayment())
-	i := pf.Rate.Div(twelve).Div(oneHundred)
+	i := pf.Rate.Div(twelve)
 	n := pf.Years.Mul(twelve)
 	monthlyMortgage := mortgage.CalculateMonthlyPayment(p, i, n)
 	monthlyTaxes := pf.AnnualTax.Div(twelve)
 	monthlyInsurance := pf.AnnualInsurance.Div(twelve)
-	monthlyPMI := pf.LoanAmount().Mul(pf.PmiRate.Decimal).Div(oneHundred).Div(twelve)
+	monthlyPMI := pf.LoanAmount().Mul(pf.PmiRate.Decimal).Div(twelve)
 
 	fmt.Printf("Mortgage Payment: $%v\n", monthlyMortgage.StringFixed(2))
 	fmt.Printf("Property Tax: $%v\n", monthlyTaxes.StringFixed(2))
@@ -88,12 +89,12 @@ func runPurchaseCmd(cmd *cobra.Command, args []string) {
 
 func init() {
 	purchaseCmd.Flags().VarP(&pf.Price, "price", "p", "Home price")
-	pf.DownPaymentPercent = DecimalFlag{decimal.NewFromInt(20)}
+	pf.DownPaymentPercent = flag.PercentFlag{decimal.NewFromFloat(.2)}
 	purchaseCmd.Flags().VarP(&pf.DownPaymentPercent, "down", "d", "Down payment percent (default: 20)")
 	purchaseCmd.Flags().VarP(&pf.Rate, "rate", "r", "Mortgage interest rate")
-	pf.Years = DecimalFlag{decimal.NewFromInt(30)}
+	pf.Years = flag.DecimalFlag{decimal.NewFromInt(30)}
 	purchaseCmd.Flags().VarP(&pf.Years, "years", "y", "Mortgage term in years (default: 30)")
-	pf.ClosingPercent = DecimalFlag{decimal.NewFromInt(3)}
+	pf.ClosingPercent = flag.PercentFlag{decimal.NewFromFloat(0.03)}
 	purchaseCmd.Flags().Var(&pf.ClosingPercent, "closing-percent", "Estimated closing costs (% of price, default: 3)")
 	purchaseCmd.Flags().Var(&pf.Escrow, "escrows", "Estimate of prepaid escrow costs")
 	purchaseCmd.Flags().VarP(&pf.AnnualTax, "taxes", "t", "Annual property taxes")
