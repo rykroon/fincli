@@ -114,11 +114,11 @@ func printAnnualSchedule(schedule mortgage.Schedule) {
 		"Balance",
 	)
 	fmt.Println(strings.Repeat("-", 89))
-	var annualPrincipal decimal.Decimal = decimal.Zero
-	var annualExtraPrincipal decimal.Decimal = decimal.Zero
-	var annualTotalPrincipal decimal.Decimal = decimal.Zero
-	var annualInterest decimal.Decimal = decimal.Zero
-	var annualPayments decimal.Decimal = decimal.Zero
+	annualPrincipal := decimal.Zero
+	annualExtraPrincipal := decimal.Zero
+	annualTotalPrincipal := decimal.Zero
+	annualInterest := decimal.Zero
+	annualPayments := decimal.Zero
 
 	for _, payment := range schedule.Payments {
 		annualPrincipal = annualPrincipal.Add(payment.Principal)
