@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"strings"
+
 	"github.com/shopspring/decimal"
 	"github.com/spf13/pflag"
 )
@@ -17,6 +19,7 @@ func (dv decimalValue) String() string {
 }
 
 func (dv *decimalValue) Set(s string) error {
+	s = strings.ReplaceAll(s, "_", "")
 	d, err := decimal.NewFromString(s)
 	if err != nil {
 		return err
