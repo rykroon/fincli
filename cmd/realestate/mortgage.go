@@ -53,8 +53,9 @@ func runMortgageCmd(cmd *cobra.Command, args []string) {
 	numPeriods := mf.Years.Mul(twelve)
 	schedule := mortgage.CalculateSchedule(mf.Amount, monthlyRate, numPeriods, mf.ExtraPaymentStrategy())
 
-	if !mf.HasExtraPayment() {
-		cmd.Printf("Monthly Payment: $%s\n", schedule.MonthlyPayment.StringFixed(2))
+	cmd.Printf("Monthly Payment: $%s\n", schedule.MonthlyPayment.StringFixed(2))
+	if !schedule.MonthlyPayment.Round(2).Equal(schedule.AverageMonthlyPayment().Round(2)) {
+		cmd.Printf("Average Monthly Payment: $%s\n", schedule.AverageMonthlyPayment().StringFixed(2))
 	}
 
 	cmd.Printf("Total Amount Paid: $%s\n", schedule.TotalAmount.StringFixed(2))
@@ -85,18 +86,18 @@ func printMonthlySchedule(schedule mortgage.Schedule) {
 	fmt.Println(strings.Repeat("-", 89))
 	for _, payment := range schedule.Payments {
 		fmt.Printf(
-			"%-6d $%-11.2f $%-14.2f $%-14.2f $%-11.2f $%-12.2f $%-11.2f\n",
-			payment.Period,
-			payment.Principal,
-			payment.ExtraPrincipal,
-			payment.TotalPrincipal(),
-			payment.Interest,
-			payment.Total(),
-			payment.Balance,
+			"%-6d $%-11s $%-14s $%-14s $%-11s $%-12s $%-11s\n",
+			payment.Period(),
+			payment.Principal().StringFixed(2),
+			payment.ExtraPrincipal().StringFixed(2),
+			payment.TotalPrincipal().StringFixed(2),
+			payment.Interest().StringFixed(2),
+			payment.Total().StringFixed(2),
+			payment.Balance().StringFixed(2),
 		)
 
-		if payment.Period%12 == 0 {
-			fmt.Printf("\t--- End of Year %d ---\n", payment.Period/12)
+		if payment.Period()%12 == 0 {
+			fmt.Printf("\t--- End of Year %d ---\n", payment.Period()/12)
 		}
 	}
 }
@@ -121,22 +122,22 @@ func printAnnualSchedule(schedule mortgage.Schedule) {
 	annualPayments := decimal.Zero
 
 	for _, payment := range schedule.Payments {
-		annualPrincipal = annualPrincipal.Add(payment.Principal)
-		annualExtraPrincipal = annualExtraPrincipal.Add(payment.ExtraPrincipal)
+		annualPrincipal = annualPrincipal.Add(payment.Principal())
+		annualExtraPrincipal = annualExtraPrincipal.Add(payment.ExtraPrincipal())
 		annualTotalPrincipal = annualTotalPrincipal.Add(payment.TotalPrincipal())
-		annualInterest = annualInterest.Add(payment.Interest)
+		annualInterest = annualInterest.Add(payment.Interest())
 		annualPayments = annualPayments.Add(payment.Total())
 
-		if payment.Period%12 == 0 {
+		if payment.Period()%12 == 0 {
 			fmt.Printf(
 				"%-6d $%-11s $%-14s $%-14s $%-11s $%-12s $%-11s\n",
-				payment.Period/12,
+				payment.Period()/12,
 				annualPrincipal.StringFixed(2),
 				annualExtraPrincipal.StringFixed(2),
 				annualTotalPrincipal.StringFixed(2),
 				annualInterest.StringFixed(2),
 				annualPayments.StringFixed(2),
-				payment.Balance.StringFixed(2),
+				payment.Balance().StringFixed(2),
 			)
 			annualPrincipal = decimal.Zero
 			annualExtraPrincipal = decimal.Zero

@@ -7,15 +7,15 @@ import (
 type Schedule struct {
 	MonthlyPayment  decimal.Decimal
 	StartingBalance decimal.Decimal
-	Payments        []Payment
+	Payments        []*Payment
 	TotalAmount     decimal.Decimal
 	TotalInterest   decimal.Decimal
 }
 
-func (s *Schedule) appendPayment(p Payment) {
+func (s *Schedule) appendPayment(p *Payment) {
 	s.Payments = append(s.Payments, p)
 	s.TotalAmount = s.TotalAmount.Add(p.Total())
-	s.TotalInterest = s.TotalInterest.Add(p.Interest)
+	s.TotalInterest = s.TotalInterest.Add(p.Interest())
 }
 
 func (s *Schedule) NumPeriods() decimal.Decimal {
@@ -32,30 +32,15 @@ func CalculateSchedule(p decimal.Decimal, i decimal.Decimal, n decimal.Decimal, 
 		MonthlyPayment:  CalculateMonthlyPayment(p, i, n),
 		StartingBalance: balance,
 	}
-	for period := 1; balance.GreaterThan(decimal.Zero); period++ {
+	for period := 1; balance.Round(2).GreaterThan(decimal.Zero); period++ {
 		interest := balance.Mul(i)
 		principal := schedule.MonthlyPayment.Sub(interest)
-
+		payment := newPayment(period, principal, interest, balance)
 		extraPrincipal := extraPaymentStratgey(period, principal, interest)
-		// make sure the principal doesn't go above the balance.
-		if principal.Add(extraPrincipal).GreaterThan(balance) {
-			if principal.GreaterThan(balance) {
-				principal = balance
-				extraPrincipal = decimal.Zero
-			} else {
-				extraPrincipal = balance.Sub(principal)
-			}
-		}
+		payment.SetExtraPrincipal(extraPrincipal)
 
-		balance = balance.Sub(principal.Add(extraPrincipal))
-		p := Payment{
-			Period:         period,
-			Principal:      principal,
-			ExtraPrincipal: extraPrincipal,
-			Interest:       interest,
-			Balance:        balance,
-		}
-		schedule.appendPayment(p)
+		balance = payment.Balance()
+		schedule.appendPayment(payment)
 	}
 	return schedule
 }

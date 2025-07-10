@@ -11,17 +11,53 @@ func CalculateMonthlyPayment(p decimal.Decimal, i decimal.Decimal, n decimal.Dec
 }
 
 type Payment struct {
-	Period         int
-	Principal      decimal.Decimal
-	ExtraPrincipal decimal.Decimal
-	Interest       decimal.Decimal
-	Balance        decimal.Decimal
+	period         int
+	principal      decimal.Decimal
+	extraPrincipal decimal.Decimal
+	interest       decimal.Decimal
+	balancePrior   decimal.Decimal
+}
+
+func newPayment(
+	period int,
+	principal decimal.Decimal,
+	interest decimal.Decimal,
+	balancePrior decimal.Decimal,
+) *Payment {
+	if principal.GreaterThan(balancePrior) {
+		principal = balancePrior
+	}
+	return &Payment{
+		period:       period,
+		principal:    principal,
+		interest:     interest,
+		balancePrior: balancePrior,
+	}
+}
+
+// getters/ setters
+func (p *Payment) Period() int                     { return p.period }
+func (p *Payment) Principal() decimal.Decimal      { return p.principal }
+func (p *Payment) ExtraPrincipal() decimal.Decimal { return p.extraPrincipal }
+func (p *Payment) SetExtraPrincipal(extra decimal.Decimal) {
+	p.extraPrincipal = extra
+	if p.TotalPrincipal().GreaterThan(p.BalancePrior()) {
+		// make sure that adding the extra payment doesn't
+		// payoff more than the balance.
+		p.extraPrincipal = p.BalancePrior().Sub(p.Principal())
+	}
+}
+func (p *Payment) Interest() decimal.Decimal     { return p.interest }
+func (p *Payment) BalancePrior() decimal.Decimal { return p.balancePrior }
+
+func (p *Payment) Balance() decimal.Decimal {
+	return p.BalancePrior().Sub(p.TotalPrincipal())
 }
 
 func (p *Payment) TotalPrincipal() decimal.Decimal {
-	return p.Principal.Add(p.ExtraPrincipal)
+	return p.Principal().Add(p.ExtraPrincipal())
 }
 
 func (p *Payment) Total() decimal.Decimal {
-	return p.TotalPrincipal().Add(p.Interest)
+	return p.TotalPrincipal().Add(p.Interest())
 }
