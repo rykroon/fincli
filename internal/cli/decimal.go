@@ -6,22 +6,22 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type DecimalValue struct {
+type decimalValue struct {
 	target *decimal.Decimal
 }
 
-func NewFromDecimal(d *decimal.Decimal) *DecimalValue {
-	return &DecimalValue{target: d}
+func DecimalValue(d *decimal.Decimal) *decimalValue {
+	return &decimalValue{target: d}
 }
 
-func (dv DecimalValue) String() string {
+func (dv decimalValue) String() string {
 	if dv.target == nil {
 		return ""
 	}
 	return dv.target.String()
 }
 
-func (dv *DecimalValue) Set(s string) error {
+func (dv *decimalValue) Set(s string) error {
 	s = strings.ReplaceAll(s, "_", "")
 	d, err := decimal.NewFromString(s)
 	if err != nil {
@@ -31,4 +31,4 @@ func (dv *DecimalValue) Set(s string) error {
 	return nil
 }
 
-func (dv DecimalValue) Type() string { return "decimal" }
+func (dv decimalValue) Type() string { return "decimal" }

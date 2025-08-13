@@ -28,9 +28,9 @@ func runFireNumberCmd(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	fireNumberCmd.Flags().VarP(cli.NewFromDecimal(&fnf.AnnualExpenses), "expenses", "e", "Annual expenses.")
+	fireNumberCmd.Flags().VarP(cli.DecimalValue(&fnf.AnnualExpenses), "expenses", "e", "Annual expenses.")
 	fnf.SafeWithdrawlRate = decimal.NewFromInt(4)
-	fireNumberCmd.Flags().Var(cli.NewFromDecimal(&fnf.SafeWithdrawlRate), "swr", "Safe withdrawl rate.")
+	fireNumberCmd.Flags().Var(cli.DecimalValue(&fnf.SafeWithdrawlRate), "swr", "Safe withdrawl rate.")
 
 	fireNumberCmd.MarkFlagRequired("expenses")
 

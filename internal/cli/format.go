@@ -1,0 +1,17 @@
+package cli
+
+import (
+	"github.com/shopspring/decimal"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
+)
+
+func FormatMoney(d decimal.Decimal) string {
+	p := message.NewPrinter(language.English)
+	f, _ := d.Round(2).Float64()
+	return p.Sprintf("$%.2f", f)
+}
+
+func FormatPercent(d decimal.Decimal, places int32) string {
+	return d.Mul(decimal.NewFromInt(100)).StringFixed(places) + "%"
+}
