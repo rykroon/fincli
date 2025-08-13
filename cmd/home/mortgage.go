@@ -149,17 +149,19 @@ func printAnnualSchedule(schedule mortgage.Schedule) {
 }
 
 func init() {
-	cli.AddDecimalVarP(mortgageCmd.Flags(), &mf.Amount, "amount", "a", "The loan amount borrowed.")
-	cli.AddDecimalVarP(mortgageCmd.Flags(), &mf.Rate, "rate", "r", "Annual interest rate.")
+	mortgageCmd.Flags().VarP(
+		cli.NewFromDecimal(&mf.Amount), "amount", "a", "The loan amount borrowed.",
+	)
+	mortgageCmd.Flags().VarP(cli.NewFromDecimal(&mf.Rate), "rate", "r", "Annual interest rate.")
 	mf.Years = decimal.NewFromInt(30)
-	cli.AddDecimalVarP(mortgageCmd.Flags(), &mf.Years, "years", "y", "Loan term in years")
+	mortgageCmd.Flags().VarP(cli.NewFromDecimal(&mf.Years), "years", "y", "Loan term in years")
 
 	mortgageCmd.MarkFlagRequired("amount")
 	mortgageCmd.MarkFlagRequired("rate")
 
 	// optional flags
-	cli.AddDecimalVar(mortgageCmd.Flags(), &mf.ExtraMonthlyPayment, "extra-monthly", "Extra monthly payment.")
-	cli.AddDecimalVar(mortgageCmd.Flags(), &mf.ExtraAnnualPayment, "extra-annual", "Extra annual payment.")
+	mortgageCmd.Flags().Var(cli.NewFromDecimal(&mf.ExtraMonthlyPayment), "extra-monthly", "Extra monthly payment.")
+	mortgageCmd.Flags().Var(cli.NewFromDecimal(&mf.ExtraAnnualPayment), "extra-annual", "Extra annual payment.")
 
 	mortgageCmd.Flags().BoolVar(&mf.MonthlySchedule, "monthly-schedule", false, "Print the monthly amortization schedule.")
 	mortgageCmd.Flags().BoolVar(&mf.AnnualSchedule, "annual-schedule", false, "Print the annual amortization schedule.")
