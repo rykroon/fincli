@@ -40,8 +40,8 @@ func runIncomeTaxCmd(cmd *cobra.Command, args []string) error {
 	}
 	taxesDue := config.CalculateTax(itf.salary)
 
-	fmt.Println("Taxes due: ", f.FormatMoney(taxesDue))
-	fmt.Println("Percent of Income: ")
+	fmt.Println("Taxes Due: ", f.FormatMoney(taxesDue))
+	fmt.Println("Effective Tax Rate: ", cli.FormatPercent(taxesDue.Div(itf.salary), 2))
 	return nil
 }
 
