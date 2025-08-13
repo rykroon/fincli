@@ -1,4 +1,4 @@
-package realestate
+package home
 
 import (
 	"github.com/rykroon/fincli/internal/cli"

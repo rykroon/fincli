@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/rykroon/fincli/cmd/home"
 	"github.com/rykroon/fincli/cmd/invest"
-	"github.com/rykroon/fincli/cmd/realestate"
 	"github.com/rykroon/fincli/cmd/taxes"
 	"github.com/spf13/cobra"
 )
@@ -24,7 +24,7 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.AddCommand(realestate.RealEstateCmd)
+	rootCmd.AddCommand(home.HomeCmd)
 	rootCmd.AddCommand(invest.InvestCmd)
 	rootCmd.AddCommand(taxes.IncomeTaxCmd)
 }

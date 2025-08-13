@@ -1,4 +1,4 @@
-package realestate
+package home
 
 import (
 	"strings"
