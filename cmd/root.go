@@ -6,7 +6,7 @@ import (
 
 	"github.com/rykroon/fincli/cmd/home"
 	"github.com/rykroon/fincli/cmd/invest"
-	"github.com/rykroon/fincli/cmd/taxes"
+	"github.com/rykroon/fincli/cmd/tax"
 	"github.com/spf13/cobra"
 )
 
@@ -26,5 +26,5 @@ func Execute() {
 func init() {
 	rootCmd.AddCommand(home.HomeCmd)
 	rootCmd.AddCommand(invest.InvestCmd)
-	rootCmd.AddCommand(taxes.IncomeTaxCmd)
+	rootCmd.AddCommand(tax.TaxCmd)
 }

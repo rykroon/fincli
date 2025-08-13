@@ -1,4 +1,4 @@
-package taxes
+package tax
 
 import (
 	"errors"
@@ -9,19 +9,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var IncomeTaxCmd = &cobra.Command{
-	Use:   "income",
+var TaxCmd = &cobra.Command{
+	Use:   "tax",
 	Short: "Calculate Federal Income Taxes",
 	RunE:  runIncomeTaxCmd,
 }
 
-type incomeTaxFlags struct {
+type taxFlags struct {
 	salary       finance.Money
 	filingStatus string
 	year         int
 }
 
-var itf incomeTaxFlags
+var itf taxFlags
 
 func runIncomeTaxCmd(cmd *cobra.Command, args []string) error {
 	config, ok := taxes.UsFederalTaxTable.GetConfig(itf.year, taxes.FilingStatus(itf.filingStatus))
@@ -35,8 +35,8 @@ func runIncomeTaxCmd(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
-	IncomeTaxCmd.Flags().VarP(&itf.salary, "salary", "s", "Your gross salary")
-	IncomeTaxCmd.Flags().StringVarP(&itf.filingStatus, "filing-status", "f", "single", "Your filing status")
-	IncomeTaxCmd.Flags().IntVarP(&itf.year, "year", "y", 2025, "Tax year")
-	IncomeTaxCmd.MarkFlagRequired("salary")
+	TaxCmd.Flags().VarP(&itf.salary, "salary", "s", "Your gross salary")
+	TaxCmd.Flags().StringVarP(&itf.filingStatus, "filing-status", "f", "single", "Your filing status")
+	TaxCmd.Flags().IntVarP(&itf.year, "year", "y", 2025, "Tax year")
+	TaxCmd.MarkFlagRequired("salary")
 }
