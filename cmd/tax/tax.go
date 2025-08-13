@@ -24,14 +24,23 @@ type taxFlags struct {
 
 var itf taxFlags
 
+var withCommas bool = true
+
 func runIncomeTaxCmd(cmd *cobra.Command, args []string) error {
+	var f cli.MoneyFormatter
+	if withCommas {
+		f = cli.NewCommaFormatter()
+	} else {
+		f = cli.NewSansCommaFormatter()
+	}
+
 	config, ok := taxes.UsFederalTaxTable.GetConfig(itf.year, taxes.FilingStatus(itf.filingStatus))
 	if !ok {
 		return errors.New("tax table not found")
 	}
 	taxesDue := config.CalculateTax(itf.salary)
 
-	fmt.Println("Taxes due: ", cli.FormatMoney(taxesDue))
+	fmt.Println("Taxes due: ", f.FormatMoney(taxesDue))
 	fmt.Println("Percent of Income: ")
 	return nil
 }

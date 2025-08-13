@@ -6,10 +6,31 @@ import (
 	"golang.org/x/text/message"
 )
 
-func FormatMoney(d decimal.Decimal) string {
-	p := message.NewPrinter(language.English)
+type MoneyFormatter interface {
+	FormatMoney(decimal.Decimal) string
+}
+
+type CommaFormatter struct {
+	printer *message.Printer
+}
+
+func NewCommaFormatter() MoneyFormatter {
+	return CommaFormatter{printer: message.NewPrinter(language.English)}
+}
+
+func (fmt CommaFormatter) FormatMoney(d decimal.Decimal) string {
 	f, _ := d.Round(2).Float64()
-	return p.Sprintf("$%.2f", f)
+	return fmt.printer.Sprintf("$%.2f", f)
+}
+
+type SansCommaFormatter struct{}
+
+func NewSansCommaFormatter() MoneyFormatter {
+	return SansCommaFormatter{}
+}
+
+func (f SansCommaFormatter) FormatMoney(d decimal.Decimal) string {
+	return "$" + d.StringFixed(2)
 }
 
 func FormatPercent(d decimal.Decimal, places int32) string {

@@ -40,19 +40,28 @@ func (pf *purchaseFlags) ClosingCosts() decimal.Decimal {
 
 var pf purchaseFlags
 
+var withCommas = true
+
 func runPurchaseCmd(cmd *cobra.Command, args []string) {
+	var fmt cli.MoneyFormatter
+	if withCommas {
+		fmt = cli.NewCommaFormatter()
+	} else {
+		fmt = cli.NewSansCommaFormatter()
+	}
+
 	// Print Summary
-	cmd.Println("Home Price: ", cli.FormatMoney(pf.Price))
-	cmd.Printf("Down Payment (%v): %v\n", pf.DownPaymentPercent, cli.FormatMoney(pf.DownPayment()))
-	cmd.Println("Loan Amount: ", cli.FormatMoney(pf.LoanAmount()))
+	cmd.Println("Home Price: ", fmt.FormatMoney(pf.Price))
+	cmd.Printf("Down Payment (%v): %v\n", pf.DownPaymentPercent, fmt.FormatMoney(pf.DownPayment()))
+	cmd.Println("Loan Amount: ", fmt.FormatMoney(pf.LoanAmount()))
 	cmd.Println("")
 
 	// One-Time costs
 	cmd.Println("--- One-Time costs ---")
-	cmd.Printf("Closing Costs (%v): %v\n", pf.ClosingPercent, cli.FormatMoney(pf.ClosingCosts()))
-	cmd.Println("Escrow Prepaids: ", cli.FormatMoney(pf.Escrow))
+	cmd.Printf("Closing Costs (%v): %v\n", pf.ClosingPercent, fmt.FormatMoney(pf.ClosingCosts()))
+	cmd.Println("Escrow Prepaids: ", fmt.FormatMoney(pf.Escrow))
 	totalUpfront := decimal.Sum(pf.DownPayment(), pf.ClosingCosts(), pf.Escrow)
-	cmd.Println("TOTAL UPFRONT: ", cli.FormatMoney(totalUpfront))
+	cmd.Println("TOTAL UPFRONT: ", fmt.FormatMoney(totalUpfront))
 	cmd.Println("")
 
 	twelve := decimal.NewFromInt(12)
@@ -67,20 +76,20 @@ func runPurchaseCmd(cmd *cobra.Command, args []string) {
 	monthlyInsurance := pf.AnnualInsurance.Div(twelve)
 	monthlyPMI := pf.LoanAmount().Mul(pf.PmiRate).Div(twelve)
 
-	cmd.Println("Mortgage Payment: ", cli.FormatMoney(monthlyMortgage))
-	cmd.Println("Property Tax: ", cli.FormatMoney(monthlyTaxes))
-	cmd.Println("Home Insurance: ", cli.FormatMoney(monthlyInsurance))
+	cmd.Println("Mortgage Payment: ", fmt.FormatMoney(monthlyMortgage))
+	cmd.Println("Property Tax: ", fmt.FormatMoney(monthlyTaxes))
+	cmd.Println("Home Insurance: ", fmt.FormatMoney(monthlyInsurance))
 	if pf.MonthlyHoa.GreaterThan(decimal.Zero) {
-		cmd.Println("HOA: ", cli.FormatMoney(pf.MonthlyHoa))
+		cmd.Println("HOA: ", fmt.FormatMoney(pf.MonthlyHoa))
 	}
 
 	if monthlyPMI.GreaterThan(decimal.Zero) {
-		cmd.Println("PMI: ", cli.FormatMoney(monthlyPMI))
+		cmd.Println("PMI: ", fmt.FormatMoney(monthlyPMI))
 	}
 
 	totalMonthlyCost := decimal.Sum(monthlyMortgage, monthlyTaxes, monthlyInsurance, pf.MonthlyHoa, monthlyPMI)
 
-	cmd.Printf("TOTAL MONTHLY: %-12v\n", cli.FormatMoney(totalMonthlyCost))
+	cmd.Printf("TOTAL MONTHLY: %-12v\n", fmt.FormatMoney(totalMonthlyCost))
 }
 
 func init() {
