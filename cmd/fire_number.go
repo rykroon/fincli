@@ -1,4 +1,4 @@
-package invest
+package cmd
 
 import (
 	"github.com/rykroon/fincli/internal/cli"
@@ -23,14 +23,14 @@ var fnf fireNumberFlags
 
 func runFireNumberCmd(cmd *cobra.Command, args []string) {
 	fmt := message.NewPrinter(language.English)
-	fireNumber := fnf.AnnualExpenses.Div(fnf.SafeWithdrawlRate.Div(decimal.NewFromInt(100)))
+	fireNumber := fnf.AnnualExpenses.Div(fnf.SafeWithdrawlRate)
 	fmt.Printf("FIRE Number: $%v\n", fireNumber.StringFixed(2))
 }
 
 func init() {
 	fireNumberCmd.Flags().VarP(cli.DecimalValue(&fnf.AnnualExpenses), "expenses", "e", "Annual expenses.")
-	fnf.SafeWithdrawlRate = decimal.NewFromInt(4)
-	fireNumberCmd.Flags().Var(cli.DecimalValue(&fnf.SafeWithdrawlRate), "swr", "Safe withdrawl rate.")
+	fnf.SafeWithdrawlRate = decimal.NewFromFloat(.04)
+	fireNumberCmd.Flags().Var(cli.PercentValue(&fnf.SafeWithdrawlRate), "swr", "Safe withdrawl rate.")
 
 	fireNumberCmd.MarkFlagRequired("expenses")
 

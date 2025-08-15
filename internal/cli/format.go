@@ -10,13 +10,13 @@ func FormatPercent(d decimal.Decimal, places int32) string {
 	return d.Mul(decimal.NewFromInt(100)).StringFixed(places) + "%"
 }
 
-func FormatMoney(d decimal.Decimal, sep *rune) string {
+func FormatMoney(d decimal.Decimal, sep rune) string {
 	return "$" + FormatDecimal(d, sep)
 }
 
-func FormatDecimal(d decimal.Decimal, sep *rune) string {
+func FormatDecimal(d decimal.Decimal, sep rune) string {
 	s := d.StringFixed(2)
-	if sep == nil {
+	if sep == 0 {
 		return s
 	}
 
@@ -34,7 +34,7 @@ func FormatDecimal(d decimal.Decimal, sep *rune) string {
 	for i, digit := range intPart {
 		out.WriteRune(digit)
 		if (n-i-1)%3 == 0 && i != n-1 {
-			out.WriteRune(*sep)
+			out.WriteRune(sep)
 		}
 	}
 

@@ -1,4 +1,4 @@
-package home
+package cmd
 
 import (
 	"github.com/rykroon/fincli/internal/cli"
@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var purchaseCmd = &cobra.Command{
+var homePurchCmd = &cobra.Command{
 	Use:   "purchase",
 	Short: "Calculate the costs of purchasing a home.",
 	Run:   runPurchaseCmd,
@@ -84,24 +84,27 @@ func runPurchaseCmd(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	purchaseCmd.Flags().VarP(cli.DecimalValue(&pf.Price), "price", "p", "Home price")
+	homePurchCmd.Flags().VarP(cli.DecimalValue(&pf.Price), "price", "p", "Home price")
+
 	pf.DownPaymentPercent = decimal.NewFromFloat(.2)
-	purchaseCmd.Flags().VarP(cli.PercentValue(&pf.DownPaymentPercent), "down", "d", "Down payment percent")
+	homePurchCmd.Flags().VarP(cli.PercentValue(&pf.DownPaymentPercent), "down", "d", "Down payment percent")
 
-	purchaseCmd.Flags().VarP(cli.PercentValue(&pf.Rate), "rate", "r", "Mortgage interest rate")
+	homePurchCmd.Flags().VarP(cli.PercentValue(&pf.Rate), "rate", "r", "Mortgage interest rate")
+
 	pf.Years = decimal.NewFromInt(30)
-	purchaseCmd.Flags().VarP(cli.DecimalValue(&pf.Years), "years", "y", "Mortgage term in years")
+	homePurchCmd.Flags().VarP(cli.DecimalValue(&pf.Years), "years", "y", "Mortgage term in years")
+
 	pf.ClosingPercent = decimal.NewFromFloat(.03)
-	purchaseCmd.Flags().Var(cli.PercentValue(&pf.ClosingPercent), "closing-percent", "Estimated closing costs as a percent")
-	purchaseCmd.Flags().Var(cli.DecimalValue(&pf.Escrow), "escrows", "Estimate of prepaid escrow costs")
-	purchaseCmd.Flags().VarP(cli.DecimalValue(&pf.AnnualTax), "taxes", "t", "Annual property taxes")
-	purchaseCmd.Flags().VarP(cli.DecimalValue(&pf.AnnualInsurance), "insurance", "i", "Annual homeowners insurance")
-	purchaseCmd.Flags().Var(cli.DecimalValue(&pf.PmiRate), "pmi", "PMI rate")
-	purchaseCmd.Flags().Var(cli.DecimalValue(&pf.MonthlyHoa), "hoa", "Monthly HOA fee")
+	homePurchCmd.Flags().Var(cli.PercentValue(&pf.ClosingPercent), "closing-percent", "Estimated closing costs as a percent")
+	homePurchCmd.Flags().Var(cli.DecimalValue(&pf.Escrow), "escrows", "Estimate of prepaid escrow costs")
+	homePurchCmd.Flags().VarP(cli.DecimalValue(&pf.AnnualTax), "taxes", "t", "Annual property taxes")
+	homePurchCmd.Flags().VarP(cli.DecimalValue(&pf.AnnualInsurance), "insurance", "i", "Annual homeowners insurance")
+	homePurchCmd.Flags().Var(cli.DecimalValue(&pf.PmiRate), "pmi", "PMI rate")
+	homePurchCmd.Flags().Var(cli.DecimalValue(&pf.MonthlyHoa), "hoa", "Monthly HOA fee")
 
-	purchaseCmd.MarkFlagRequired("price")
-	purchaseCmd.MarkFlagRequired("rate")
+	homePurchCmd.MarkFlagRequired("price")
+	homePurchCmd.MarkFlagRequired("rate")
 
-	purchaseCmd.Flags().SortFlags = false
-	purchaseCmd.Flags().PrintDefaults()
+	homePurchCmd.Flags().SortFlags = false
+	homePurchCmd.Flags().PrintDefaults()
 }

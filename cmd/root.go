@@ -4,9 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/rykroon/fincli/cmd/home"
-	"github.com/rykroon/fincli/cmd/invest"
-	"github.com/rykroon/fincli/cmd/tax"
+	"github.com/rykroon/fincli/internal/cli"
 	"github.com/spf13/cobra"
 )
 
@@ -23,8 +21,13 @@ func Execute() {
 	}
 }
 
+var sep rune
+
 func init() {
-	rootCmd.AddCommand(home.HomeCmd)
-	rootCmd.AddCommand(invest.InvestCmd)
-	rootCmd.AddCommand(tax.TaxCmd)
+	rootCmd.AddCommand(fireNumberCmd)
+	rootCmd.AddCommand(taxCmd)
+	rootCmd.AddCommand(homePurchCmd)
+	rootCmd.AddCommand(mortgageCmd)
+
+	rootCmd.PersistentFlags().Var(cli.RuneValue(&sep, []rune{',', '_'}), "sep", "thousands separator")
 }
