@@ -22,35 +22,16 @@ type FilingConfig struct {
 	StandardDeduction decimal.Decimal
 }
 
-type TaxYear struct {
-	Year    int
-	Filings map[FilingStatus]FilingConfig
-}
-
-type TaxTable struct {
-	Years map[int]TaxYear
-}
-
-func (t *TaxTable) GetConfig(year int, status FilingStatus) (*FilingConfig, bool) {
-	taxYear, ok := t.Years[year]
-	if !ok {
-		return nil, false
+func (c FilingConfig) GetBracketByIncome(i decimal.Decimal) Bracket {
+	for _, bracket := range c.Brackets {
+		if bracket.Max.IsZero() {
+			return bracket
+		}
+		if bracket.Min.LessThan(i) && i.LessThan(bracket.Max) {
+			return bracket
+		}
 	}
-	config, ok := taxYear.Filings[status]
-	if !ok {
-		return nil, false
-	}
-	return &config, true
-}
-
-var Single2025Brackets = []Bracket{
-	{Min: decimal.Zero, Max: decimal.NewFromInt(11925), Rate: decimal.NewFromFloat(.10)},
-	{Min: decimal.NewFromInt(11925), Max: decimal.NewFromInt(48475), Rate: decimal.NewFromFloat(.12)},
-	{Min: decimal.NewFromInt(48475), Max: decimal.NewFromInt(103350), Rate: decimal.NewFromFloat(.22)},
-	{Min: decimal.NewFromInt(103350), Max: decimal.NewFromInt(197300), Rate: decimal.NewFromFloat(.24)},
-	{Min: decimal.NewFromInt(197300), Max: decimal.NewFromInt(250525), Rate: decimal.NewFromFloat(.32)},
-	{Min: decimal.NewFromInt(197300), Max: decimal.NewFromInt(626350), Rate: decimal.NewFromFloat(.35)},
-	{Min: decimal.NewFromInt(626350), Max: decimal.Zero, Rate: decimal.NewFromFloat(.37)},
+	panic("a bracket should have been found")
 }
 
 func (c FilingConfig) CalculateTax(income decimal.Decimal) decimal.Decimal {
@@ -75,6 +56,27 @@ func (c FilingConfig) CalculateTax(income decimal.Decimal) decimal.Decimal {
 		}
 	}
 	return tax
+}
+
+type TaxYear struct {
+	Year    int
+	Filings map[FilingStatus]FilingConfig
+}
+
+type TaxTable struct {
+	Years map[int]TaxYear
+}
+
+func (t TaxTable) GetConfig(year int, status FilingStatus) (*FilingConfig, bool) {
+	taxYear, ok := t.Years[year]
+	if !ok {
+		return nil, false
+	}
+	config, ok := taxYear.Filings[status]
+	if !ok {
+		return nil, false
+	}
+	return &config, true
 }
 
 var UsFederalTaxTable = TaxTable{

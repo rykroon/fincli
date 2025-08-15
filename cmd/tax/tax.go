@@ -16,7 +16,7 @@ var TaxCmd = &cobra.Command{
 }
 
 type taxFlags struct {
-	salary       decimal.Decimal
+	income       decimal.Decimal
 	filingStatus string
 	year         int
 }
@@ -24,9 +24,8 @@ type taxFlags struct {
 var itf taxFlags
 
 var comma rune = ','
-
-// var underScore rune = '_'
-var sep = &comma
+var underScore rune = '_'
+var sep = &underScore
 
 func runIncomeTaxCmd(cmd *cobra.Command, args []string) error {
 	config, ok := taxes.UsFederalTaxTable.GetConfig(itf.year, taxes.FilingStatus(itf.filingStatus))
@@ -34,16 +33,19 @@ func runIncomeTaxCmd(cmd *cobra.Command, args []string) error {
 		return errors.New("tax table not found")
 	}
 
-	taxesDue := config.CalculateTax(itf.salary)
-	effectiveTaxRate := taxesDue.Div(itf.salary)
+	taxesDue := config.CalculateTax(itf.income)
+	effectiveTaxRate := taxesDue.Div(itf.income)
+	bracket := config.GetBracketByIncome(itf.income)
 
-	cmd.Println("Taxes Due: ", cli.FormatMoney(taxesDue, sep))
-	cmd.Println("Effective Tax Rate: ", cli.FormatPercent(effectiveTaxRate, 2))
+	cmd.Printf("Taxes Due: \t\t%s\n", cli.FormatMoney(taxesDue, sep))
+	cmd.Printf("Effective Tax Rate: \t%s\n", cli.FormatPercent(effectiveTaxRate, 2))
+	cmd.Printf("Tax Bracket: \t\t%s\n", cli.FormatPercent(bracket.Rate, 0))
+	cmd.Printf("Standard Deduction: \t%s\n", cli.FormatMoney(config.StandardDeduction, sep))
 	return nil
 }
 
 func init() {
-	TaxCmd.Flags().VarP(cli.DecimalValue(&itf.salary), "salary", "s", "Your gross salary")
+	TaxCmd.Flags().VarP(cli.DecimalValue(&itf.income), "income", "i", "Your gross income")
 	TaxCmd.Flags().StringVarP(&itf.filingStatus, "filing-status", "f", "single", "Your filing status")
 	TaxCmd.Flags().IntVarP(&itf.year, "year", "y", 2025, "Tax year")
 	TaxCmd.MarkFlagRequired("salary")
