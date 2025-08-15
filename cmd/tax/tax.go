@@ -2,7 +2,6 @@ package tax
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/rykroon/fincli/internal/cli"
 	"github.com/rykroon/fincli/internal/taxes"
@@ -24,24 +23,22 @@ type taxFlags struct {
 
 var itf taxFlags
 
-var withCommas bool = true
+var comma rune = ','
+
+// var underScore rune = '_'
+var sep = &comma
 
 func runIncomeTaxCmd(cmd *cobra.Command, args []string) error {
-	var f cli.MoneyFormatter
-	if withCommas {
-		f = cli.NewCommaFormatter()
-	} else {
-		f = cli.NewSansCommaFormatter()
-	}
-
 	config, ok := taxes.UsFederalTaxTable.GetConfig(itf.year, taxes.FilingStatus(itf.filingStatus))
 	if !ok {
 		return errors.New("tax table not found")
 	}
-	taxesDue := config.CalculateTax(itf.salary)
 
-	fmt.Println("Taxes Due: ", f.FormatMoney(taxesDue))
-	fmt.Println("Effective Tax Rate: ", cli.FormatPercent(taxesDue.Div(itf.salary), 2))
+	taxesDue := config.CalculateTax(itf.salary)
+	effectiveTaxRate := taxesDue.Div(itf.salary)
+
+	cmd.Println("Taxes Due: ", cli.FormatMoney(taxesDue, sep))
+	cmd.Println("Effective Tax Rate: ", cli.FormatPercent(effectiveTaxRate, 2))
 	return nil
 }
 

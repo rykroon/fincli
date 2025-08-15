@@ -20,7 +20,7 @@ func (dv percentValue) String() string {
 	if dv.target == nil {
 		return ""
 	}
-	return dv.target.Mul(OneHundred).String()
+	return FormatPercent(*dv.target, 0)
 }
 
 func (dv *percentValue) Set(s string) error {

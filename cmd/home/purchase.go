@@ -26,82 +26,73 @@ type purchaseFlags struct {
 	MonthlyHoa         decimal.Decimal
 }
 
-func (pf *purchaseFlags) DownPayment() decimal.Decimal {
-	return pf.Price.Mul(pf.DownPaymentPercent.Div(decimal.NewFromInt(100)))
+func (pf purchaseFlags) DownPayment() decimal.Decimal {
+	return pf.Price.Mul(pf.DownPaymentPercent)
 }
 
-func (pf *purchaseFlags) LoanAmount() decimal.Decimal {
+func (pf purchaseFlags) LoanAmount() decimal.Decimal {
 	return pf.Price.Sub(pf.DownPayment())
 }
 
-func (pf *purchaseFlags) ClosingCosts() decimal.Decimal {
-	return pf.Price.Mul(pf.ClosingPercent.Div(decimal.NewFromInt(100)))
+func (pf purchaseFlags) ClosingCosts() decimal.Decimal {
+	return pf.Price.Mul(pf.ClosingPercent)
 }
 
 var pf purchaseFlags
 
-var withCommas = true
-
 func runPurchaseCmd(cmd *cobra.Command, args []string) {
-	var fmt cli.MoneyFormatter
-	if withCommas {
-		fmt = cli.NewCommaFormatter()
-	} else {
-		fmt = cli.NewSansCommaFormatter()
-	}
-
 	// Print Summary
-	cmd.Println("Home Price: ", fmt.FormatMoney(pf.Price))
-	cmd.Printf("Down Payment (%v): %v\n", pf.DownPaymentPercent, fmt.FormatMoney(pf.DownPayment()))
-	cmd.Println("Loan Amount: ", fmt.FormatMoney(pf.LoanAmount()))
+	cmd.Println("Home Price: ", cli.FormatMoney(pf.Price, sep))
+	cmd.Printf("Down Payment (%s): %s\n", cli.FormatPercent(pf.DownPaymentPercent, 0), cli.FormatMoney(pf.DownPayment(), sep))
+	cmd.Println("Loan Amount: ", cli.FormatMoney(pf.LoanAmount(), sep))
 	cmd.Println("")
 
 	// One-Time costs
 	cmd.Println("--- One-Time costs ---")
-	cmd.Printf("Closing Costs (%v): %v\n", pf.ClosingPercent, fmt.FormatMoney(pf.ClosingCosts()))
-	cmd.Println("Escrow Prepaids: ", fmt.FormatMoney(pf.Escrow))
+	cmd.Printf("Closing Costs (%s): %s\n", cli.FormatPercent(pf.ClosingPercent, 0), cli.FormatMoney(pf.ClosingCosts(), sep))
+	cmd.Println("Escrow Prepaids: ", cli.FormatMoney(pf.Escrow, sep))
 	totalUpfront := decimal.Sum(pf.DownPayment(), pf.ClosingCosts(), pf.Escrow)
-	cmd.Println("TOTAL UPFRONT: ", fmt.FormatMoney(totalUpfront))
+	cmd.Println("Total Upfront: ", cli.FormatMoney(totalUpfront, sep))
 	cmd.Println("")
-
-	twelve := decimal.NewFromInt(12)
 
 	// monthly costs
 	cmd.Println("--- Monthly Costs ---")
 	p := pf.Price.Sub(pf.DownPayment())
-	i := pf.Rate.Div(twelve).Div(decimal.NewFromInt(100))
+	twelve := decimal.NewFromInt(12)
+	i := pf.Rate.Div(twelve)
 	n := pf.Years.Mul(twelve)
 	monthlyMortgage := mortgage.CalculateMonthlyPayment(p, i, n)
 	monthlyTaxes := pf.AnnualTax.Div(twelve)
 	monthlyInsurance := pf.AnnualInsurance.Div(twelve)
 	monthlyPMI := pf.LoanAmount().Mul(pf.PmiRate).Div(twelve)
 
-	cmd.Println("Mortgage Payment: ", fmt.FormatMoney(monthlyMortgage))
-	cmd.Println("Property Tax: ", fmt.FormatMoney(monthlyTaxes))
-	cmd.Println("Home Insurance: ", fmt.FormatMoney(monthlyInsurance))
+	cmd.Println("Mortgage Payment: ", cli.FormatMoney(monthlyMortgage, sep))
+	cmd.Println("Property Tax: ", cli.FormatMoney(monthlyTaxes, sep))
+	cmd.Println("Home Insurance: ", cli.FormatMoney(monthlyInsurance, sep))
 	if pf.MonthlyHoa.GreaterThan(decimal.Zero) {
-		cmd.Println("HOA: ", fmt.FormatMoney(pf.MonthlyHoa))
+		cmd.Println("HOA: ", cli.FormatMoney(pf.MonthlyHoa, sep))
 	}
 
 	if monthlyPMI.GreaterThan(decimal.Zero) {
-		cmd.Println("PMI: ", fmt.FormatMoney(monthlyPMI))
+		cmd.Println("PMI: ", cli.FormatMoney(monthlyPMI, sep))
 	}
 
-	totalMonthlyCost := decimal.Sum(monthlyMortgage, monthlyTaxes, monthlyInsurance, pf.MonthlyHoa, monthlyPMI)
-
-	cmd.Printf("TOTAL MONTHLY: %-12v\n", fmt.FormatMoney(totalMonthlyCost))
+	totalMonthlyCost := decimal.Sum(
+		monthlyMortgage, monthlyTaxes, monthlyInsurance, pf.MonthlyHoa, monthlyPMI,
+	)
+	cmd.Println("Total Monthly: ", cli.FormatMoney(totalMonthlyCost, sep))
 }
 
 func init() {
 	purchaseCmd.Flags().VarP(cli.DecimalValue(&pf.Price), "price", "p", "Home price")
-	pf.DownPaymentPercent = decimal.NewFromInt(20)
-	purchaseCmd.Flags().VarP(cli.DecimalValue(&pf.DownPaymentPercent), "down", "d", "Down payment percent")
+	pf.DownPaymentPercent = decimal.NewFromFloat(.2)
+	purchaseCmd.Flags().VarP(cli.PercentValue(&pf.DownPaymentPercent), "down", "d", "Down payment percent")
 
-	purchaseCmd.Flags().VarP(cli.DecimalValue(&pf.Rate), "rate", "r", "Mortgage interest rate")
+	purchaseCmd.Flags().VarP(cli.PercentValue(&pf.Rate), "rate", "r", "Mortgage interest rate")
 	pf.Years = decimal.NewFromInt(30)
 	purchaseCmd.Flags().VarP(cli.DecimalValue(&pf.Years), "years", "y", "Mortgage term in years")
-	pf.ClosingPercent = decimal.NewFromInt(3)
-	purchaseCmd.Flags().Var(cli.DecimalValue(&pf.ClosingPercent), "closing-percent", "Estimated closing costs as a percent")
+	pf.ClosingPercent = decimal.NewFromFloat(.03)
+	purchaseCmd.Flags().Var(cli.PercentValue(&pf.ClosingPercent), "closing-percent", "Estimated closing costs as a percent")
 	purchaseCmd.Flags().Var(cli.DecimalValue(&pf.Escrow), "escrows", "Estimate of prepaid escrow costs")
 	purchaseCmd.Flags().VarP(cli.DecimalValue(&pf.AnnualTax), "taxes", "t", "Annual property taxes")
 	purchaseCmd.Flags().VarP(cli.DecimalValue(&pf.AnnualInsurance), "insurance", "i", "Annual homeowners insurance")

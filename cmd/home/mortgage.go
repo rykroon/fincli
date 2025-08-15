@@ -1,14 +1,13 @@
 package home
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/rykroon/fincli/internal/cli"
 	"github.com/rykroon/fincli/internal/mortgage"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
 )
 
 var mortgageCmd = &cobra.Command{
@@ -27,11 +26,11 @@ type mortgageFlags struct {
 	AnnualSchedule      bool
 }
 
-func (mf *mortgageFlags) HasExtraPayment() bool {
+func (mf mortgageFlags) HasExtraPayment() bool {
 	return mf.ExtraAnnualPayment.GreaterThan(decimal.Zero) || mf.ExtraMonthlyPayment.GreaterThan(decimal.Zero)
 }
 
-func (mf *mortgageFlags) ExtraPaymentStrategy() mortgage.ExtraPaymentStrategy {
+func (mf mortgageFlags) ExtraPaymentStrategy() mortgage.ExtraPaymentStrategy {
 	// return mortgage.PrincipalMatchInterest()
 	if mf.ExtraMonthlyPayment.GreaterThan(decimal.Zero) && mf.ExtraAnnualPayment.GreaterThan(decimal.Zero) {
 		return mortgage.ExtraMonthlyAndAnnualPayment(mf.ExtraMonthlyPayment, mf.ExtraAnnualPayment)
@@ -51,28 +50,30 @@ func runMortgageCmd(cmd *cobra.Command, args []string) {
 	oneHundred := decimal.NewFromInt(100)
 	monthlyRate := mf.Rate.Div(oneHundred).Div(twelve)
 	numPeriods := mf.Years.Mul(twelve)
-	schedule := mortgage.CalculateSchedule(mf.Amount, monthlyRate, numPeriods, mf.ExtraPaymentStrategy())
+	sched := mortgage.CalculateSchedule(mf.Amount, monthlyRate, numPeriods, mf.ExtraPaymentStrategy())
 
-	cmd.Printf("Monthly Payment: $%s\n", schedule.MonthlyPayment.StringFixed(2))
-	if !schedule.MonthlyPayment.Round(2).Equal(schedule.AverageMonthlyPayment().Round(2)) {
-		cmd.Printf("Average Monthly Payment: $%s\n", schedule.AverageMonthlyPayment().StringFixed(2))
+	cmd.Println("Monthly Payment: $", cli.FormatDecimal(sched.MonthlyPayment, sep))
+	if !sched.MonthlyPayment.Round(2).Equal(sched.AverageMonthlyPayment().Round(2)) {
+		cmd.Println("Average Monthly Payment: $", sched.AverageMonthlyPayment())
 	}
 
-	cmd.Printf("Total Amount Paid: $%s\n", schedule.TotalAmount.StringFixed(2))
-	cmd.Printf("Total Interest Paid: $%s\n", schedule.TotalInterest.StringFixed(2))
-	cmd.Printf("Pay off in %v years and %v month(s)\n", schedule.NumPeriods().Div(twelve).StringFixed(0), schedule.NumPeriods().Mod(twelve))
+	cmd.Println("Total Amount Paid: $", cli.FormatDecimal(sched.TotalAmount, sep))
+	cmd.Println("Total Interest Paid: $", cli.FormatDecimal(sched.TotalInterest, sep))
+
+	years := sched.NumPeriods().Div(twelve).StringFixed(0)
+	months := sched.NumPeriods().Mod(twelve).StringFixed(0)
+	cmd.Println("Pay off in ", years, " years and ", months, "month(s)")
 	cmd.Println("")
 
 	if mf.MonthlySchedule {
-		printMonthlySchedule(schedule)
+		printMonthlySchedule(sched)
 
 	} else if mf.AnnualSchedule {
-		printAnnualSchedule(schedule)
+		printAnnualSchedule(sched)
 	}
 }
 
 func printMonthlySchedule(schedule mortgage.Schedule) {
-	fmt := message.NewPrinter(language.English)
 	fmt.Printf(
 		"%-6s %-12s %-12s %-12s %-12s %-12s %-12s\n",
 		"Month",
@@ -103,7 +104,6 @@ func printMonthlySchedule(schedule mortgage.Schedule) {
 }
 
 func printAnnualSchedule(schedule mortgage.Schedule) {
-	fmt := message.NewPrinter(language.English)
 	fmt.Printf(
 		"%-6s %-12s %-12s %-12s %-12s %-12s %-12s\n",
 		"Year",

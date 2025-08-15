@@ -1,38 +1,48 @@
 package cli
 
 import (
+	"strings"
+
 	"github.com/shopspring/decimal"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
 )
-
-type MoneyFormatter interface {
-	FormatMoney(decimal.Decimal) string
-}
-
-type CommaFormatter struct {
-	printer *message.Printer
-}
-
-func NewCommaFormatter() MoneyFormatter {
-	return CommaFormatter{printer: message.NewPrinter(language.English)}
-}
-
-func (fmt CommaFormatter) FormatMoney(d decimal.Decimal) string {
-	f, _ := d.Round(2).Float64()
-	return fmt.printer.Sprintf("$%.2f", f)
-}
-
-type SansCommaFormatter struct{}
-
-func NewSansCommaFormatter() MoneyFormatter {
-	return SansCommaFormatter{}
-}
-
-func (f SansCommaFormatter) FormatMoney(d decimal.Decimal) string {
-	return "$" + d.StringFixed(2)
-}
 
 func FormatPercent(d decimal.Decimal, places int32) string {
 	return d.Mul(decimal.NewFromInt(100)).StringFixed(places) + "%"
+}
+
+func FormatMoney(d decimal.Decimal, sep *rune) string {
+	return "$" + FormatDecimal(d, sep)
+}
+
+func FormatDecimal(d decimal.Decimal, sep *rune) string {
+	s := d.StringFixed(2)
+	if sep == nil {
+		return s
+	}
+
+	// Split into whole and fractional parts
+	parts := strings.SplitN(s, ".", 2)
+	intPart := parts[0]
+	fracPart := ""
+	if len(parts) > 1 {
+		fracPart = parts[1]
+	}
+
+	// Add separators to the integer part
+	var out strings.Builder
+	n := len(intPart)
+	for i, digit := range intPart {
+		out.WriteRune(digit)
+		if (n-i-1)%3 == 0 && i != n-1 {
+			out.WriteRune(*sep)
+		}
+	}
+
+	// Append fractional part if present
+	if fracPart != "" {
+		out.WriteRune('.')
+		out.WriteString(fracPart)
+	}
+
+	return out.String()
 }
