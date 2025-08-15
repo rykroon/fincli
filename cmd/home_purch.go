@@ -8,7 +8,7 @@ import (
 )
 
 var homePurchCmd = &cobra.Command{
-	Use:   "purchase",
+	Use:   "home-purch",
 	Short: "Calculate the costs of purchasing a home.",
 	Run:   runPurchaseCmd,
 }
@@ -19,7 +19,6 @@ type purchaseFlags struct {
 	Rate               decimal.Decimal
 	Years              decimal.Decimal
 	ClosingPercent     decimal.Decimal
-	Escrow             decimal.Decimal
 	AnnualTax          decimal.Decimal
 	AnnualInsurance    decimal.Decimal
 	PmiRate            decimal.Decimal
@@ -50,8 +49,7 @@ func runPurchaseCmd(cmd *cobra.Command, args []string) {
 	// One-Time costs
 	cmd.Println("--- One-Time costs ---")
 	cmd.Printf("Closing Costs (%s): %s\n", cli.FormatPercent(pf.ClosingPercent, 0), cli.FormatMoney(pf.ClosingCosts(), sep))
-	cmd.Println("Escrow Prepaids: ", cli.FormatMoney(pf.Escrow, sep))
-	totalUpfront := decimal.Sum(pf.DownPayment(), pf.ClosingCosts(), pf.Escrow)
+	totalUpfront := decimal.Sum(pf.DownPayment(), pf.ClosingCosts())
 	cmd.Println("Total Upfront: ", cli.FormatMoney(totalUpfront, sep))
 	cmd.Println("")
 
@@ -96,7 +94,6 @@ func init() {
 
 	pf.ClosingPercent = decimal.NewFromFloat(.03)
 	homePurchCmd.Flags().Var(cli.PercentValue(&pf.ClosingPercent), "closing-percent", "Estimated closing costs as a percent")
-	homePurchCmd.Flags().Var(cli.DecimalValue(&pf.Escrow), "escrows", "Estimate of prepaid escrow costs")
 	homePurchCmd.Flags().VarP(cli.DecimalValue(&pf.AnnualTax), "taxes", "t", "Annual property taxes")
 	homePurchCmd.Flags().VarP(cli.DecimalValue(&pf.AnnualInsurance), "insurance", "i", "Annual homeowners insurance")
 	homePurchCmd.Flags().Var(cli.DecimalValue(&pf.PmiRate), "pmi", "PMI rate")

@@ -24,10 +24,11 @@ func Execute() {
 var sep rune
 
 func init() {
+	rootCmd.AddCommand(amortSchedCmd)
+	rootCmd.AddCommand(mortgageCmd)
+	rootCmd.AddCommand(homePurchCmd)
 	rootCmd.AddCommand(fireNumberCmd)
 	rootCmd.AddCommand(taxCmd)
-	rootCmd.AddCommand(homePurchCmd)
-	rootCmd.AddCommand(mortgageCmd)
 
 	rootCmd.PersistentFlags().Var(cli.RuneValue(&sep, []rune{',', '_'}), "sep", "thousands separator")
 }

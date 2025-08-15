@@ -9,7 +9,7 @@ import (
 )
 
 var fireNumberCmd = &cobra.Command{
-	Use:   "fire-number",
+	Use:   "fire-num",
 	Short: "Calculate your FIRE number.",
 	Run:   runFireNumberCmd,
 }
@@ -24,7 +24,7 @@ var fnf fireNumberFlags
 func runFireNumberCmd(cmd *cobra.Command, args []string) {
 	fmt := message.NewPrinter(language.English)
 	fireNumber := fnf.AnnualExpenses.Div(fnf.SafeWithdrawlRate)
-	fmt.Printf("FIRE Number: $%v\n", fireNumber.StringFixed(2))
+	fmt.Println("FIRE Number: ", cli.FormatMoney(fireNumber, sep))
 }
 
 func init() {
