@@ -17,9 +17,38 @@ type Bracket struct {
 	Rate decimal.Decimal
 }
 
+func NewBracket(min, max int64, rate float64) Bracket {
+	return Bracket{
+		Min:  decimal.NewFromInt(min),
+		Max:  decimal.NewFromInt(max),
+		Rate: decimal.NewFromFloat(rate),
+	}
+}
+
+func (b Bracket) CalculateTax(income decimal.Decimal) decimal.Decimal {
+	if income.LessThan(b.Min) {
+		return decimal.Zero
+	}
+	upper := b.Max
+	if upper.IsZero() || income.LessThan(upper) {
+		upper = income
+	}
+
+	taxable := upper.Sub(b.Min)
+	return taxable.Mul(b.Rate)
+}
+
 type FilingConfig struct {
 	Brackets          []Bracket
 	StandardDeduction decimal.Decimal
+}
+
+func (c *FilingConfig) setStandardDeductionInt(i int64) {
+	c.StandardDeduction = decimal.NewFromInt(i)
+}
+
+func (c *FilingConfig) addBracket(b Bracket) {
+	c.Brackets = append(c.Brackets, b)
 }
 
 func (c FilingConfig) GetBracketByIncome(i decimal.Decimal) Bracket {
@@ -43,15 +72,9 @@ func (c FilingConfig) CalculateTax(income decimal.Decimal) decimal.Decimal {
 			break
 		}
 
-		upper := b.Max
-		if upper.IsZero() || income.LessThan(upper) {
-			upper = income
-		}
+		tax = tax.Add(b.CalculateTax(income))
 
-		taxable := upper.Sub(b.Min)
-		tax = tax.Add(taxable.Mul(b.Rate))
-
-		if income.LessThan(upper) {
+		if income.LessThan(b.Max) {
 			break
 		}
 	}
@@ -67,6 +90,10 @@ type TaxTable struct {
 	Years map[int]TaxYear
 }
 
+func (t *TaxTable) AddTaxYear(ty TaxYear) {
+	t.Years[ty.Year] = ty
+}
+
 func (t TaxTable) GetConfig(year int, status FilingStatus) (*FilingConfig, bool) {
 	taxYear, ok := t.Years[year]
 	if !ok {
@@ -79,23 +106,25 @@ func (t TaxTable) GetConfig(year int, status FilingStatus) (*FilingConfig, bool)
 	return &config, true
 }
 
+func buildSingle2025() FilingConfig {
+	single2025 := FilingConfig{}
+	single2025.setStandardDeductionInt(15000)
+	single2025.addBracket(NewBracket(0, 11925, .10))
+	single2025.addBracket(NewBracket(11925, 48475, .12))
+	single2025.addBracket(NewBracket(48475, 103350, .22))
+	single2025.addBracket(NewBracket(103350, 197300, .24))
+	single2025.addBracket(NewBracket(197300, 250525, .32))
+	single2025.addBracket(NewBracket(250525, 626350, .35))
+	single2025.addBracket(NewBracket(626350, 0, .37))
+	return single2025
+}
+
 var UsFederalTaxTable = TaxTable{
 	Years: map[int]TaxYear{
 		2025: {
 			Year: 2025,
 			Filings: map[FilingStatus]FilingConfig{
-				Single: {
-					Brackets: []Bracket{
-						{Min: decimal.Zero, Max: decimal.NewFromInt(11925), Rate: decimal.NewFromFloat(.10)},
-						{Min: decimal.NewFromInt(11925), Max: decimal.NewFromInt(48475), Rate: decimal.NewFromFloat(.12)},
-						{Min: decimal.NewFromInt(48475), Max: decimal.NewFromInt(103350), Rate: decimal.NewFromFloat(.22)},
-						{Min: decimal.NewFromInt(103350), Max: decimal.NewFromInt(197300), Rate: decimal.NewFromFloat(.24)},
-						{Min: decimal.NewFromInt(197300), Max: decimal.NewFromInt(250525), Rate: decimal.NewFromFloat(.32)},
-						{Min: decimal.NewFromInt(197300), Max: decimal.NewFromInt(626350), Rate: decimal.NewFromFloat(.35)},
-						{Min: decimal.NewFromInt(626350), Max: decimal.Zero, Rate: decimal.NewFromFloat(.37)},
-					},
-					StandardDeduction: decimal.NewFromInt(15000),
-				},
+				Single: buildSingle2025(),
 			},
 		},
 	},
