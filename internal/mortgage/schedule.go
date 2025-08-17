@@ -36,11 +36,19 @@ func CalculateSchedule(p decimal.Decimal, i decimal.Decimal, n decimal.Decimal, 
 		interest := balance.Mul(i)
 		principal := schedule.MonthlyPayment.Sub(interest)
 		payment := newPayment(period, principal, interest, balance)
-		extraPrincipal := extraPaymentStratgey(period, principal, interest)
-		payment.SetExtraPrincipal(extraPrincipal)
+		if extraPaymentStratgey != nil {
+			extraPrincipal := extraPaymentStratgey(period, principal, interest)
+			payment.SetExtraPrincipal(extraPrincipal)
+		}
 
 		balance = payment.Balance()
 		schedule.appendPayment(payment)
 	}
 	return schedule
+}
+
+func CalculateMonthlyPayment(p decimal.Decimal, i decimal.Decimal, n decimal.Decimal) decimal.Decimal {
+	// P * ((i * (1+i)^n) / ((1+i)^n - 1))
+	one := decimal.NewFromInt(1)
+	return p.Mul((i.Mul(i.Add(one).Pow(n))).Div(i.Add(one).Pow(n).Sub(one)))
 }
