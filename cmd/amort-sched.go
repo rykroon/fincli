@@ -47,8 +47,7 @@ var asf amortSchedFlags
 
 func runAmortSchedCmd(cmd *cobra.Command, args []string) {
 	twelve := decimal.NewFromInt(12)
-	oneHundred := decimal.NewFromInt(100)
-	monthlyRate := asf.Rate.Div(oneHundred).Div(twelve)
+	monthlyRate := asf.Rate.Div(twelve)
 	numPeriods := asf.Years * 12
 	sched := mortgage.CalculateSchedule(asf.Amount, monthlyRate, numPeriods, asf.ExtraPaymentStrategy())
 
@@ -151,7 +150,7 @@ func init() {
 	amortSchedCmd.Flags().VarP(
 		cli.DecimalValue(&asf.Amount), "amount", "a", "The loan amount borrowed.",
 	)
-	amortSchedCmd.Flags().VarP(cli.DecimalValue(&asf.Rate), "rate", "r", "Annual interest rate.")
+	amortSchedCmd.Flags().VarP(cli.PercentValue(&asf.Rate), "rate", "r", "Annual interest rate.")
 	amortSchedCmd.Flags().Int64VarP(&asf.Years, "years", "y", 30, "Loan term in years")
 
 	amortSchedCmd.MarkFlagRequired("amount")

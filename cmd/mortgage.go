@@ -22,9 +22,7 @@ type mortgageFlags struct {
 var mf mortgageFlags
 
 func runMortgageCmd(cmd *cobra.Command, args []string) {
-	twelve := decimal.NewFromInt(12)
-	oneHundred := decimal.NewFromInt(100)
-	monthlyRate := mf.Rate.Div(oneHundred).Div(twelve)
+	monthlyRate := mf.Rate.Div(decimal.NewFromInt(12))
 	numPeriods := mf.Years * 12
 	sched := mortgage.CalculateSchedule(mf.Amount, monthlyRate, numPeriods, mortgage.NoExtraPayment())
 
@@ -37,7 +35,7 @@ func init() {
 	mortgageCmd.Flags().VarP(
 		cli.DecimalValue(&mf.Amount), "amount", "a", "The loan amount borrowed.",
 	)
-	mortgageCmd.Flags().VarP(cli.DecimalValue(&mf.Rate), "rate", "r", "Annual interest rate.")
+	mortgageCmd.Flags().VarP(cli.PercentValue(&mf.Rate), "rate", "r", "Annual interest rate.")
 	mortgageCmd.Flags().Int64VarP(&mf.Years, "years", "y", 30, "Loan term in years")
 
 	mortgageCmd.MarkFlagRequired("amount")
