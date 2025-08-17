@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/rykroon/fincli/cmd/mortgage"
 	"github.com/rykroon/fincli/internal/cli"
 	"github.com/spf13/cobra"
 )
@@ -24,10 +25,9 @@ func Execute() {
 var sep rune
 
 func init() {
-	rootCmd.AddCommand(amortSchedCmd)
-	rootCmd.AddCommand(mortgageCmd)
+	rootCmd.AddCommand(mortgage.MortgageCmd)
 	rootCmd.AddCommand(homePurchCmd)
-	rootCmd.AddCommand(fireNumberCmd)
+	rootCmd.AddCommand(fireCmd)
 	rootCmd.AddCommand(taxCmd)
 
 	rootCmd.PersistentFlags().Var(cli.RuneValue(&sep, []rune{',', '_'}), "sep", "thousands separator")

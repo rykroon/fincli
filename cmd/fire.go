@@ -8,8 +8,8 @@ import (
 	"golang.org/x/text/message"
 )
 
-var fireNumberCmd = &cobra.Command{
-	Use:   "fire-num",
+var fireCmd = &cobra.Command{
+	Use:   "fire",
 	Short: "Calculate your FIRE number.",
 	Run:   runFireNumberCmd,
 }
@@ -28,12 +28,12 @@ func runFireNumberCmd(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	fireNumberCmd.Flags().VarP(cli.DecimalValue(&fnf.AnnualExpenses), "expenses", "e", "Annual expenses.")
+	fireCmd.Flags().VarP(cli.DecimalValue(&fnf.AnnualExpenses), "expenses", "e", "Annual expenses.")
 	fnf.SafeWithdrawlRate = decimal.NewFromFloat(.04)
-	fireNumberCmd.Flags().Var(cli.PercentValue(&fnf.SafeWithdrawlRate), "swr", "Safe withdrawl rate.")
+	fireCmd.Flags().Var(cli.PercentValue(&fnf.SafeWithdrawlRate), "swr", "Safe withdrawl rate.")
 
-	fireNumberCmd.MarkFlagRequired("expenses")
+	fireCmd.MarkFlagRequired("expenses")
 
-	fireNumberCmd.Flags().SortFlags = false
-	fireNumberCmd.Flags().PrintDefaults()
+	fireCmd.Flags().SortFlags = false
+	fireCmd.Flags().PrintDefaults()
 }

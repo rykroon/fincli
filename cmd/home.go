@@ -8,7 +8,7 @@ import (
 )
 
 var homePurchCmd = &cobra.Command{
-	Use:   "home-purch",
+	Use:   "home",
 	Short: "Calculate the costs of purchasing a home.",
 	Run:   runPurchaseCmd,
 }

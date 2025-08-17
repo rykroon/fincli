@@ -31,6 +31,7 @@ func CalculateSchedule(p decimal.Decimal, i decimal.Decimal, n int64, extraPayme
 	schedule := Schedule{
 		MonthlyPayment:  CalculateMonthlyPayment(p, i, n),
 		StartingBalance: balance,
+		Payments:        make([]Payment, 0, n),
 	}
 	for period := 1; balance.Round(2).GreaterThan(decimal.Zero); period++ {
 		interest := balance.Mul(i)

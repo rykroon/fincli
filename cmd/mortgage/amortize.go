@@ -1,4 +1,4 @@
-package cmd
+package mortgage
 
 import (
 	"fmt"
@@ -10,13 +10,13 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var amortSchedCmd = &cobra.Command{
-	Use:   "amort-sched",
+var amortizeCmd = &cobra.Command{
+	Use:   "amortize",
 	Short: "Print an Amortization Schedule",
 	Run:   runAmortSchedCmd,
 }
 
-type amortSchedFlags struct {
+type amortizeFlags struct {
 	Amount              decimal.Decimal
 	Rate                decimal.Decimal
 	Years               int64
@@ -26,30 +26,30 @@ type amortSchedFlags struct {
 	AnnualSchedule      bool
 }
 
-func (asf amortSchedFlags) HasExtraPayment() bool {
-	return asf.ExtraAnnualPayment.GreaterThan(decimal.Zero) || asf.ExtraMonthlyPayment.GreaterThan(decimal.Zero)
+func (af amortizeFlags) HasExtraPayment() bool {
+	return af.ExtraAnnualPayment.GreaterThan(decimal.Zero) || af.ExtraMonthlyPayment.GreaterThan(decimal.Zero)
 }
 
-func (asf amortSchedFlags) ExtraPaymentStrategy() mortgage.ExtraPaymentStrategy {
+func (af amortizeFlags) ExtraPaymentStrategy() mortgage.ExtraPaymentStrategy {
 	// return mortgage.PrincipalMatchInterest()
-	if asf.ExtraMonthlyPayment.GreaterThan(decimal.Zero) && asf.ExtraAnnualPayment.GreaterThan(decimal.Zero) {
-		return mortgage.ExtraMonthlyAndAnnualPayment(asf.ExtraMonthlyPayment, asf.ExtraAnnualPayment)
-	} else if asf.ExtraMonthlyPayment.GreaterThan(decimal.Zero) {
-		return mortgage.ExtraMonthlyPayment(asf.ExtraMonthlyPayment)
-	} else if asf.ExtraAnnualPayment.GreaterThan(decimal.Zero) {
-		return mortgage.ExtraAnnualPayment(asf.ExtraAnnualPayment)
+	if af.ExtraMonthlyPayment.GreaterThan(decimal.Zero) && af.ExtraAnnualPayment.GreaterThan(decimal.Zero) {
+		return mortgage.ExtraMonthlyAndAnnualPayment(af.ExtraMonthlyPayment, af.ExtraAnnualPayment)
+	} else if af.ExtraMonthlyPayment.GreaterThan(decimal.Zero) {
+		return mortgage.ExtraMonthlyPayment(af.ExtraMonthlyPayment)
+	} else if af.ExtraAnnualPayment.GreaterThan(decimal.Zero) {
+		return mortgage.ExtraAnnualPayment(af.ExtraAnnualPayment)
 	} else {
 		return mortgage.NoExtraPayment()
 	}
 }
 
-var asf amortSchedFlags
+var af amortizeFlags
 
 func runAmortSchedCmd(cmd *cobra.Command, args []string) {
 	twelve := decimal.NewFromInt(12)
-	monthlyRate := asf.Rate.Div(twelve)
-	numPeriods := asf.Years * 12
-	sched := mortgage.CalculateSchedule(asf.Amount, monthlyRate, numPeriods, asf.ExtraPaymentStrategy())
+	monthlyRate := af.Rate.Div(twelve)
+	numPeriods := af.Years * 12
+	sched := mortgage.CalculateSchedule(af.Amount, monthlyRate, numPeriods, af.ExtraPaymentStrategy())
 
 	cmd.Println("Monthly Payment: $", cli.FormatDecimal(sched.MonthlyPayment, sep))
 	if !sched.MonthlyPayment.Round(2).Equal(sched.AverageMonthlyPayment().Round(2)) {
@@ -66,7 +66,7 @@ func runAmortSchedCmd(cmd *cobra.Command, args []string) {
 
 	printMonthlySchedule(sched)
 
-	if asf.AnnualSchedule {
+	if af.AnnualSchedule {
 		printAnnualSchedule(sched)
 	}
 }
@@ -147,24 +147,24 @@ func printAnnualSchedule(schedule mortgage.Schedule) {
 }
 
 func init() {
-	amortSchedCmd.Flags().VarP(
-		cli.DecimalValue(&asf.Amount), "amount", "a", "The loan amount borrowed.",
+	amortizeCmd.Flags().VarP(
+		cli.DecimalValue(&af.Amount), "amount", "a", "The loan amount borrowed.",
 	)
-	amortSchedCmd.Flags().VarP(cli.PercentValue(&asf.Rate), "rate", "r", "Annual interest rate.")
-	amortSchedCmd.Flags().Int64VarP(&asf.Years, "years", "y", 30, "Loan term in years")
+	amortizeCmd.Flags().VarP(cli.PercentValue(&af.Rate), "rate", "r", "Annual interest rate.")
+	amortizeCmd.Flags().Int64VarP(&af.Years, "years", "y", 30, "Loan term in years")
 
-	amortSchedCmd.MarkFlagRequired("amount")
-	amortSchedCmd.MarkFlagRequired("rate")
+	amortizeCmd.MarkFlagRequired("amount")
+	amortizeCmd.MarkFlagRequired("rate")
 
 	// optional flags
-	amortSchedCmd.Flags().Var(cli.DecimalValue(&asf.ExtraMonthlyPayment), "extra-monthly", "Extra monthly payment.")
-	amortSchedCmd.Flags().Var(cli.DecimalValue(&asf.ExtraAnnualPayment), "extra-annual", "Extra annual payment.")
+	amortizeCmd.Flags().Var(cli.DecimalValue(&af.ExtraMonthlyPayment), "extra-monthly", "Extra monthly payment.")
+	amortizeCmd.Flags().Var(cli.DecimalValue(&af.ExtraAnnualPayment), "extra-annual", "Extra annual payment.")
 
-	amortSchedCmd.Flags().BoolVar(&asf.MonthlySchedule, "monthly-schedule", false, "Print the monthly amortization schedule.")
-	amortSchedCmd.Flags().BoolVar(&asf.AnnualSchedule, "annual-schedule", false, "Print the annual amortization schedule.")
+	amortizeCmd.Flags().BoolVar(&af.MonthlySchedule, "monthly-schedule", false, "Print the monthly amortization schedule.")
+	amortizeCmd.Flags().BoolVar(&af.AnnualSchedule, "annual-schedule", false, "Print the annual amortization schedule.")
 
-	amortSchedCmd.MarkFlagsMutuallyExclusive("monthly-schedule", "annual-schedule")
+	amortizeCmd.MarkFlagsMutuallyExclusive("monthly-schedule", "annual-schedule")
 
-	amortSchedCmd.Flags().SortFlags = false
-	amortSchedCmd.Flags().PrintDefaults()
+	amortizeCmd.Flags().SortFlags = false
+	amortizeCmd.Flags().PrintDefaults()
 }

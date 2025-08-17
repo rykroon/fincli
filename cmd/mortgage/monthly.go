@@ -1,4 +1,4 @@
-package cmd
+package mortgage
 
 import (
 	"github.com/rykroon/fincli/internal/cli"
@@ -7,21 +7,21 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var mortgageCmd = &cobra.Command{
-	Use:   "mortgage",
-	Short: "Calculate Mortgage Payment",
-	Run:   runMortgageCmd,
+var monthlyCmd = &cobra.Command{
+	Use:   "monthly",
+	Short: "Calculate Monthly Mortgage Payment",
+	Run:   runMonthlyCmd,
 }
 
-type mortgageFlags struct {
+type monthlyFlags struct {
 	Amount decimal.Decimal
 	Rate   decimal.Decimal
 	Years  int64
 }
 
-var mf mortgageFlags
+var mf monthlyFlags
 
-func runMortgageCmd(cmd *cobra.Command, args []string) {
+func runMonthlyCmd(cmd *cobra.Command, args []string) {
 	monthlyRate := mf.Rate.Div(decimal.NewFromInt(12))
 	numPeriods := mf.Years * 12
 	sched := mortgage.CalculateSchedule(mf.Amount, monthlyRate, numPeriods, mortgage.NoExtraPayment())
@@ -32,15 +32,15 @@ func runMortgageCmd(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	mortgageCmd.Flags().VarP(
+	monthlyCmd.Flags().VarP(
 		cli.DecimalValue(&mf.Amount), "amount", "a", "The loan amount borrowed.",
 	)
-	mortgageCmd.Flags().VarP(cli.PercentValue(&mf.Rate), "rate", "r", "Annual interest rate.")
-	mortgageCmd.Flags().Int64VarP(&mf.Years, "years", "y", 30, "Loan term in years")
+	monthlyCmd.Flags().VarP(cli.PercentValue(&mf.Rate), "rate", "r", "Annual interest rate.")
+	monthlyCmd.Flags().Int64VarP(&mf.Years, "years", "y", 30, "Loan term in years")
 
-	mortgageCmd.MarkFlagRequired("amount")
-	mortgageCmd.MarkFlagRequired("rate")
+	monthlyCmd.MarkFlagRequired("amount")
+	monthlyCmd.MarkFlagRequired("rate")
 
-	mortgageCmd.Flags().SortFlags = false
-	mortgageCmd.Flags().PrintDefaults()
+	monthlyCmd.Flags().SortFlags = false
+	monthlyCmd.Flags().PrintDefaults()
 }

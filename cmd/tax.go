@@ -10,7 +10,7 @@ import (
 )
 
 var taxCmd = &cobra.Command{
-	Use:   "calc-tax",
+	Use:   "tax",
 	Short: "Calculate Federal Income Taxes",
 	RunE:  runTaxCmd,
 }
