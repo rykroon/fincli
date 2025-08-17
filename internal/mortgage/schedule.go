@@ -26,7 +26,7 @@ func (s Schedule) AverageMonthlyPayment() decimal.Decimal {
 	return s.TotalAmount.Div(s.NumPeriods())
 }
 
-func CalculateSchedule(p decimal.Decimal, i decimal.Decimal, n decimal.Decimal, extraPaymentStratgey ExtraPaymentStrategy) Schedule {
+func CalculateSchedule(p decimal.Decimal, i decimal.Decimal, n int64, extraPaymentStratgey ExtraPaymentStrategy) Schedule {
 	balance := p
 	schedule := Schedule{
 		MonthlyPayment:  CalculateMonthlyPayment(p, i, n),
@@ -47,8 +47,9 @@ func CalculateSchedule(p decimal.Decimal, i decimal.Decimal, n decimal.Decimal, 
 	return schedule
 }
 
-func CalculateMonthlyPayment(p decimal.Decimal, i decimal.Decimal, n decimal.Decimal) decimal.Decimal {
+func CalculateMonthlyPayment(p decimal.Decimal, i decimal.Decimal, n int64) decimal.Decimal {
 	// P * ((i * (1+i)^n) / ((1+i)^n - 1))
 	one := decimal.NewFromInt(1)
-	return p.Mul((i.Mul(i.Add(one).Pow(n))).Div(i.Add(one).Pow(n).Sub(one)))
+	onePlusIPowN := one.Add(i).Pow(decimal.NewFromInt(n))
+	return p.Mul((i.Mul(onePlusIPowN)).Div(onePlusIPowN.Sub(one)))
 }

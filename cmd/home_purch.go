@@ -17,7 +17,7 @@ type purchaseFlags struct {
 	Price              decimal.Decimal
 	DownPaymentPercent decimal.Decimal
 	Rate               decimal.Decimal
-	Years              decimal.Decimal
+	Years              int64
 	ClosingPercent     decimal.Decimal
 	AnnualTax          decimal.Decimal
 	AnnualInsurance    decimal.Decimal
@@ -58,7 +58,7 @@ func runPurchaseCmd(cmd *cobra.Command, args []string) {
 	p := pf.Price.Sub(pf.DownPayment())
 	twelve := decimal.NewFromInt(12)
 	i := pf.Rate.Div(twelve)
-	n := pf.Years.Mul(twelve)
+	n := pf.Years * 12
 	monthlyMortgage := mortgage.CalculateMonthlyPayment(p, i, n)
 	monthlyTaxes := pf.AnnualTax.Div(twelve)
 	monthlyInsurance := pf.AnnualInsurance.Div(twelve)
@@ -89,8 +89,7 @@ func init() {
 
 	homePurchCmd.Flags().VarP(cli.PercentValue(&pf.Rate), "rate", "r", "Mortgage interest rate")
 
-	pf.Years = decimal.NewFromInt(30)
-	homePurchCmd.Flags().VarP(cli.DecimalValue(&pf.Years), "years", "y", "Mortgage term in years")
+	homePurchCmd.Flags().Int64VarP(&pf.Years, "years", "y", 30, "Mortgage term in years")
 
 	pf.ClosingPercent = decimal.NewFromFloat(.03)
 	homePurchCmd.Flags().Var(cli.PercentValue(&pf.ClosingPercent), "closing-percent", "Estimated closing costs as a percent")
