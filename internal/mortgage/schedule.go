@@ -7,22 +7,22 @@ import (
 type Schedule struct {
 	MonthlyPayment  decimal.Decimal
 	StartingBalance decimal.Decimal
-	Payments        []*Payment
+	Payments        []Payment
 	TotalAmount     decimal.Decimal
 	TotalInterest   decimal.Decimal
 }
 
-func (s *Schedule) appendPayment(p *Payment) {
+func (s *Schedule) appendPayment(p Payment) {
 	s.Payments = append(s.Payments, p)
 	s.TotalAmount = s.TotalAmount.Add(p.Total())
 	s.TotalInterest = s.TotalInterest.Add(p.Interest())
 }
 
-func (s *Schedule) NumPeriods() decimal.Decimal {
+func (s Schedule) NumPeriods() decimal.Decimal {
 	return decimal.NewFromInt(int64(len(s.Payments)))
 }
 
-func (s *Schedule) AverageMonthlyPayment() decimal.Decimal {
+func (s Schedule) AverageMonthlyPayment() decimal.Decimal {
 	return s.TotalAmount.Div(s.NumPeriods())
 }
 
