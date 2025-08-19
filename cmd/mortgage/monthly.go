@@ -2,6 +2,7 @@ package mortgage
 
 import (
 	"github.com/rykroon/fincli/internal/cli"
+	"github.com/rykroon/fincli/internal/flag"
 	"github.com/rykroon/fincli/internal/mortgage"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
@@ -33,9 +34,9 @@ func runMonthlyCmd(cmd *cobra.Command, args []string) {
 
 func init() {
 	monthlyCmd.Flags().VarP(
-		cli.DecimalValue(&mf.Amount), "amount", "a", "The loan amount borrowed.",
+		flag.NewDecVal(&mf.Amount), "amount", "a", "The loan amount borrowed.",
 	)
-	monthlyCmd.Flags().VarP(cli.PercentValue(&mf.Rate), "rate", "r", "Annual interest rate.")
+	monthlyCmd.Flags().VarP(flag.NewPercentVal(&mf.Rate), "rate", "r", "Annual interest rate.")
 	monthlyCmd.Flags().Int64VarP(&mf.Years, "years", "y", 30, "Loan term in years")
 
 	monthlyCmd.MarkFlagRequired("amount")

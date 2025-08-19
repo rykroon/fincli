@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/rykroon/fincli/cmd/mortgage"
-	"github.com/rykroon/fincli/internal/cli"
+	"github.com/rykroon/fincli/internal/flag"
 	"github.com/spf13/cobra"
 )
 
@@ -29,6 +29,7 @@ func init() {
 	rootCmd.AddCommand(homeCmd)
 	rootCmd.AddCommand(fireCmd)
 	rootCmd.AddCommand(taxCmd)
+	rootCmd.AddCommand(playgroundCmd)
 
-	rootCmd.PersistentFlags().Var(cli.RuneValue(&sep, []rune{',', '_'}), "sep", "thousands separator")
+	rootCmd.PersistentFlags().Var(flag.NewRuneVal(&sep, []rune{',', '_'}), "sep", "thousands separator")
 }

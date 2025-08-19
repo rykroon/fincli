@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/rykroon/fincli/internal/cli"
+	"github.com/rykroon/fincli/internal/flag"
 	"github.com/rykroon/fincli/internal/mortgage"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
@@ -148,17 +149,17 @@ func printAnnualSchedule(schedule mortgage.Schedule) {
 
 func init() {
 	amortizeCmd.Flags().VarP(
-		cli.DecimalValue(&af.Amount), "amount", "a", "The loan amount borrowed.",
+		flag.NewDecVal(&af.Amount), "amount", "a", "The loan amount borrowed.",
 	)
-	amortizeCmd.Flags().VarP(cli.PercentValue(&af.Rate), "rate", "r", "Annual interest rate.")
+	amortizeCmd.Flags().VarP(flag.NewPercentVal(&af.Rate), "rate", "r", "Annual interest rate.")
 	amortizeCmd.Flags().Int64VarP(&af.Years, "years", "y", 30, "Loan term in years")
 
 	amortizeCmd.MarkFlagRequired("amount")
 	amortizeCmd.MarkFlagRequired("rate")
 
 	// optional flags
-	amortizeCmd.Flags().Var(cli.DecimalValue(&af.ExtraMonthlyPayment), "extra-monthly", "Extra monthly payment.")
-	amortizeCmd.Flags().Var(cli.DecimalValue(&af.ExtraAnnualPayment), "extra-annual", "Extra annual payment.")
+	amortizeCmd.Flags().Var(flag.NewDecVal(&af.ExtraMonthlyPayment), "extra-monthly", "Extra monthly payment.")
+	amortizeCmd.Flags().Var(flag.NewDecVal(&af.ExtraAnnualPayment), "extra-annual", "Extra annual payment.")
 
 	amortizeCmd.Flags().BoolVar(&af.MonthlySchedule, "monthly-schedule", false, "Print the monthly amortization schedule.")
 	amortizeCmd.Flags().BoolVar(&af.AnnualSchedule, "annual-schedule", false, "Print the annual amortization schedule.")

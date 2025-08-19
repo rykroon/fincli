@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/rykroon/fincli/internal/cli"
+	"github.com/rykroon/fincli/internal/flag"
 	"github.com/rykroon/fincli/internal/taxes"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
@@ -41,7 +42,7 @@ func runTaxCmd(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
-	taxCmd.Flags().VarP(cli.DecimalValue(&tf.income), "income", "i", "Your gross income")
+	taxCmd.Flags().VarP(flag.NewDecVal(&tf.income), "income", "i", "Your gross income")
 	taxCmd.Flags().StringVarP(&tf.filingStatus, "filing-status", "f", "single", "Your filing status")
 	taxCmd.Flags().IntVarP(&tf.year, "year", "y", 2025, "Tax year")
 	taxCmd.MarkFlagRequired("income")

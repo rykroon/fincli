@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/rykroon/fincli/internal/cli"
+	"github.com/rykroon/fincli/internal/flag"
 	"github.com/rykroon/fincli/internal/mortgage"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
@@ -82,21 +83,21 @@ func runHouseCmd(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	homeCmd.Flags().VarP(cli.DecimalValue(&hf.Price), "price", "p", "Home price")
+	homeCmd.Flags().VarP(flag.NewDecVal(&hf.Price), "price", "p", "Home price")
 
 	hf.DownPaymentPercent = decimal.NewFromFloat(.2)
-	homeCmd.Flags().VarP(cli.PercentValue(&hf.DownPaymentPercent), "down", "d", "Down payment percent")
+	homeCmd.Flags().VarP(flag.NewPercentVal(&hf.DownPaymentPercent), "down", "d", "Down payment percent")
 
-	homeCmd.Flags().VarP(cli.PercentValue(&hf.Rate), "rate", "r", "Mortgage interest rate")
+	homeCmd.Flags().VarP(flag.NewPercentVal(&hf.Rate), "rate", "r", "Mortgage interest rate")
 
 	homeCmd.Flags().Int64VarP(&hf.Years, "years", "y", 30, "Mortgage term in years")
 
 	hf.ClosingPercent = decimal.NewFromFloat(.03)
-	homeCmd.Flags().Var(cli.PercentValue(&hf.ClosingPercent), "closing-percent", "Estimated closing costs as a percent")
-	homeCmd.Flags().VarP(cli.DecimalValue(&hf.AnnualTax), "taxes", "t", "Annual property taxes")
-	homeCmd.Flags().VarP(cli.DecimalValue(&hf.AnnualInsurance), "insurance", "i", "Annual homeowners insurance")
-	homeCmd.Flags().Var(cli.DecimalValue(&hf.PmiRate), "pmi", "PMI rate")
-	homeCmd.Flags().Var(cli.DecimalValue(&hf.MonthlyHoa), "hoa", "Monthly HOA fee")
+	homeCmd.Flags().Var(flag.NewPercentVal(&hf.ClosingPercent), "closing-percent", "Estimated closing costs as a percent")
+	homeCmd.Flags().VarP(flag.NewDecVal(&hf.AnnualTax), "taxes", "t", "Annual property taxes")
+	homeCmd.Flags().VarP(flag.NewDecVal(&hf.AnnualInsurance), "insurance", "i", "Annual homeowners insurance")
+	homeCmd.Flags().Var(flag.NewPercentVal(&hf.PmiRate), "pmi", "PMI rate")
+	homeCmd.Flags().Var(flag.NewDecVal(&hf.MonthlyHoa), "hoa", "Monthly HOA fee")
 
 	homeCmd.MarkFlagRequired("price")
 	homeCmd.MarkFlagRequired("rate")

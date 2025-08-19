@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/rykroon/fincli/internal/cli"
+	"github.com/rykroon/fincli/internal/flag"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
 	"golang.org/x/text/language"
@@ -28,9 +29,9 @@ func runFireCmd(cmd *cobra.Command, args []string) {
 }
 
 func init() {
-	fireCmd.Flags().VarP(cli.DecimalValue(&ff.AnnualExpenses), "expenses", "e", "Annual expenses.")
+	fireCmd.Flags().VarP(flag.NewDecVal(&ff.AnnualExpenses), "expenses", "e", "Annual expenses.")
 	ff.SafeWithdrawlRate = decimal.NewFromFloat(.04)
-	fireCmd.Flags().Var(cli.PercentValue(&ff.SafeWithdrawlRate), "swr", "Safe withdrawl rate.")
+	fireCmd.Flags().Var(flag.NewPercentVal(&ff.SafeWithdrawlRate), "swr", "Safe withdrawl rate.")
 
 	fireCmd.MarkFlagRequired("expenses")
 
