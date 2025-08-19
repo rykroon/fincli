@@ -21,17 +21,17 @@ type taxFlags struct {
 	year         int
 }
 
-var itf taxFlags
+var tf taxFlags
 
 func runTaxCmd(cmd *cobra.Command, args []string) error {
-	config, ok := taxes.UsFederalTaxTable.GetConfig(itf.year, taxes.FilingStatus(itf.filingStatus))
+	config, ok := taxes.UsFederalTaxTable.GetConfig(tf.year, taxes.FilingStatus(tf.filingStatus))
 	if !ok {
 		return errors.New("tax table not found")
 	}
 
-	taxesDue := config.CalculateTax(itf.income)
-	effectiveTaxRate := taxesDue.Div(itf.income)
-	bracket := config.GetBracketByIncome(itf.income)
+	taxesDue := config.CalculateTax(tf.income)
+	effectiveTaxRate := taxesDue.Div(tf.income)
+	bracket := config.GetBracketByIncome(tf.income)
 
 	cmd.Printf("Taxes Due: \t\t%s\n", cli.FormatMoney(taxesDue, sep))
 	cmd.Printf("Effective Tax Rate: \t%s\n", cli.FormatPercent(effectiveTaxRate, 2))
@@ -41,8 +41,8 @@ func runTaxCmd(cmd *cobra.Command, args []string) error {
 }
 
 func init() {
-	taxCmd.Flags().VarP(cli.DecimalValue(&itf.income), "income", "i", "Your gross income")
-	taxCmd.Flags().StringVarP(&itf.filingStatus, "filing-status", "f", "single", "Your filing status")
-	taxCmd.Flags().IntVarP(&itf.year, "year", "y", 2025, "Tax year")
+	taxCmd.Flags().VarP(cli.DecimalValue(&tf.income), "income", "i", "Your gross income")
+	taxCmd.Flags().StringVarP(&tf.filingStatus, "filing-status", "f", "single", "Your filing status")
+	taxCmd.Flags().IntVarP(&tf.year, "year", "y", 2025, "Tax year")
 	taxCmd.MarkFlagRequired("income")
 }

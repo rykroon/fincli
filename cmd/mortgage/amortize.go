@@ -13,7 +13,7 @@ import (
 var amortizeCmd = &cobra.Command{
 	Use:   "amortize",
 	Short: "Print an Amortization Schedule",
-	Run:   runAmortSchedCmd,
+	Run:   runAmortizeCmd,
 }
 
 type amortizeFlags struct {
@@ -45,7 +45,7 @@ func (af amortizeFlags) ExtraPaymentStrategy() mortgage.ExtraPaymentStrategy {
 
 var af amortizeFlags
 
-func runAmortSchedCmd(cmd *cobra.Command, args []string) {
+func runAmortizeCmd(cmd *cobra.Command, args []string) {
 	twelve := decimal.NewFromInt(12)
 	monthlyRate := af.Rate.Div(twelve)
 	numPeriods := af.Years * 12

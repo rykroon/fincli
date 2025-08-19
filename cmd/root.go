@@ -26,7 +26,7 @@ var sep rune
 
 func init() {
 	rootCmd.AddCommand(mortgage.MortgageCmd)
-	rootCmd.AddCommand(homePurchCmd)
+	rootCmd.AddCommand(homeCmd)
 	rootCmd.AddCommand(fireCmd)
 	rootCmd.AddCommand(taxCmd)
 
