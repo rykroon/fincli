@@ -17,36 +17,41 @@ func NewDecFmt(d decimal.Decimal, sep rune) DecFmt {
 }
 
 func (df DecFmt) Format(state fmt.State, verb rune) {
-	w := GetWidth(state)
-	p := GetPrecision(state)
-	flags := GetFlags(state)
+	w := getWidth(state)
+	p := getPrecision(state)
+	flags := getFlags(state)
+	format := buildFormat(flags, w, p, verb)
 
 	switch verb {
 	case 'v', 's':
-		format := BuildFormat(flags, w, -1, 's')
-		fmt.Fprintf(state, format, FormatDecimal(df.decimal, int32(p), df.sep))
-	case 'f', 'F':
-		fmt.Fprintf(state, BuildFormat(flags, w, p, verb), df.decimal.InexactFloat64())
-	default:
-		fmt.Fprintf(state, BuildFormat(flags, w, p, verb), df.decimal)
-	}
+		format := buildFormat(flags, w, -1, 's')
+		fmt.Fprintf(state, format, FormatDecimal(df.decimal, state.Flag('+'), int32(p), df.sep))
 
+	case 'e', 'E', 'f', 'F', 'g', 'G':
+		fmt.Fprintf(state, format, df.decimal.InexactFloat64())
+
+	default:
+		fmt.Fprintf(state, format, df.decimal)
+	}
 }
 
-func FormatDecimal(d decimal.Decimal, precision int32, sep rune) string {
-	var s string
+func FormatDecimal(d decimal.Decimal, alwaysPrintSign bool, precision int32, sep rune) string {
 	if precision >= 0 {
-		s = d.StringFixed(precision)
+		return formatNumberString(d.StringFixed(precision), alwaysPrintSign, sep)
 	} else {
-		s = d.String()
+		return formatNumberString(d.String(), alwaysPrintSign, sep)
 	}
+}
 
+func formatNumberString(s string, alwaysPrintSign bool, sep rune) string {
 	parts := strings.SplitN(s, ".", 2)
 	intPart := parts[0]
 	sign := ""
 	if strings.HasPrefix(intPart, "-") {
 		sign = "-"
 		intPart = intPart[1:]
+	} else if alwaysPrintSign {
+		sign = "+"
 	}
 
 	// Insert separators
