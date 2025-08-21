@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/rykroon/fincli/internal/cli"
-	"github.com/rykroon/fincli/internal/flag"
+	"github.com/rykroon/fincli/internal/flagx"
+	"github.com/rykroon/fincli/internal/fmtx"
 	"github.com/rykroon/fincli/internal/mortgage"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
@@ -41,21 +41,23 @@ func (hf homeFlags) ClosingCosts() decimal.Decimal {
 var hf homeFlags
 
 func runHouseCmd(cmd *cobra.Command, args []string) {
+	oneHundred := decimal.NewFromInt(100)
+	prt := fmtx.NewDecimalPrinter(sep)
 	// Print Summary
-	cmd.Println("Home Price: ", cli.FormatMoney(hf.Price, sep))
-	cmd.Printf("Down Payment (%s): %s\n", cli.FormatPercent(hf.DownPaymentPercent, 0), cli.FormatMoney(hf.DownPayment(), sep))
-	cmd.Println("Loan Amount: ", cli.FormatMoney(hf.LoanAmount(), sep))
-	cmd.Println("")
+	prt.Printf("Home Price: $%.2v\n", hf.Price)
+	prt.Printf("Down Payment (%v%%): $%.2v\n", hf.DownPaymentPercent.Mul(oneHundred), hf.DownPayment())
+	prt.Printf("Loan Amount: $%.2v\n", hf.LoanAmount())
+	prt.Println("")
 
 	// One-Time costs
-	cmd.Println("--- One-Time costs ---")
-	cmd.Printf("Closing Costs (%s): %s\n", cli.FormatPercent(hf.ClosingPercent, 0), cli.FormatMoney(hf.ClosingCosts(), sep))
+	prt.Println("--- One-Time costs ---")
+	prt.Printf("Closing Costs (%v%%): $%.2v\n", hf.ClosingPercent.Mul(oneHundred), hf.ClosingCosts())
 	totalUpfront := decimal.Sum(hf.DownPayment(), hf.ClosingCosts())
-	cmd.Println("Total Upfront: ", cli.FormatMoney(totalUpfront, sep))
-	cmd.Println("")
+	prt.Printf("Total Upfront: $%.2v\n", totalUpfront)
+	prt.Println("")
 
 	// monthly costs
-	cmd.Println("--- Monthly Costs ---")
+	prt.Println("--- Monthly Costs ---")
 	p := hf.Price.Sub(hf.DownPayment())
 	twelve := decimal.NewFromInt(12)
 	i := hf.Rate.Div(twelve)
@@ -65,39 +67,39 @@ func runHouseCmd(cmd *cobra.Command, args []string) {
 	monthlyInsurance := hf.AnnualInsurance.Div(twelve)
 	monthlyPMI := hf.LoanAmount().Mul(hf.PmiRate).Div(twelve)
 
-	cmd.Println("Mortgage Payment: ", cli.FormatMoney(monthlyMortgage, sep))
-	cmd.Println("Property Tax: ", cli.FormatMoney(monthlyTaxes, sep))
-	cmd.Println("Home Insurance: ", cli.FormatMoney(monthlyInsurance, sep))
+	prt.Printf("Mortgage Payment: $%.2v\n", monthlyMortgage)
+	prt.Printf("Property Tax: $%.2v\n", monthlyTaxes)
+	prt.Printf("Home Insurance: $%.2v\n", monthlyInsurance)
 	if hf.MonthlyHoa.GreaterThan(decimal.Zero) {
-		cmd.Println("HOA: ", cli.FormatMoney(hf.MonthlyHoa, sep))
+		prt.Printf("HOA: $%.2v\n", hf.MonthlyHoa)
 	}
 
 	if monthlyPMI.GreaterThan(decimal.Zero) {
-		cmd.Println("PMI: ", cli.FormatMoney(monthlyPMI, sep))
+		prt.Printf("PMI: $%.2v\n", monthlyPMI, sep)
 	}
 
 	totalMonthlyCost := decimal.Sum(
 		monthlyMortgage, monthlyTaxes, monthlyInsurance, hf.MonthlyHoa, monthlyPMI,
 	)
-	cmd.Println("Total Monthly: ", cli.FormatMoney(totalMonthlyCost, sep))
+	prt.Printf("Total Monthly: $%.2v\n", totalMonthlyCost)
 }
 
 func init() {
-	homeCmd.Flags().VarP(flag.NewDecVal(&hf.Price), "price", "p", "Home price")
+	homeCmd.Flags().VarP(flagx.NewDecVal(&hf.Price), "price", "p", "Home price")
 
 	hf.DownPaymentPercent = decimal.NewFromFloat(.2)
-	homeCmd.Flags().VarP(flag.NewPercentVal(&hf.DownPaymentPercent), "down", "d", "Down payment percent")
+	homeCmd.Flags().VarP(flagx.NewPercentVal(&hf.DownPaymentPercent), "down", "d", "Down payment percent")
 
-	homeCmd.Flags().VarP(flag.NewPercentVal(&hf.Rate), "rate", "r", "Mortgage interest rate")
+	homeCmd.Flags().VarP(flagx.NewPercentVal(&hf.Rate), "rate", "r", "Mortgage interest rate")
 
 	homeCmd.Flags().Int64VarP(&hf.Years, "years", "y", 30, "Mortgage term in years")
 
 	hf.ClosingPercent = decimal.NewFromFloat(.03)
-	homeCmd.Flags().Var(flag.NewPercentVal(&hf.ClosingPercent), "closing-percent", "Estimated closing costs as a percent")
-	homeCmd.Flags().VarP(flag.NewDecVal(&hf.AnnualTax), "taxes", "t", "Annual property taxes")
-	homeCmd.Flags().VarP(flag.NewDecVal(&hf.AnnualInsurance), "insurance", "i", "Annual homeowners insurance")
-	homeCmd.Flags().Var(flag.NewPercentVal(&hf.PmiRate), "pmi", "PMI rate")
-	homeCmd.Flags().Var(flag.NewDecVal(&hf.MonthlyHoa), "hoa", "Monthly HOA fee")
+	homeCmd.Flags().Var(flagx.NewPercentVal(&hf.ClosingPercent), "closing-percent", "Estimated closing costs as a percent")
+	homeCmd.Flags().VarP(flagx.NewDecVal(&hf.AnnualTax), "taxes", "t", "Annual property taxes")
+	homeCmd.Flags().VarP(flagx.NewDecVal(&hf.AnnualInsurance), "insurance", "i", "Annual homeowners insurance")
+	homeCmd.Flags().Var(flagx.NewPercentVal(&hf.PmiRate), "pmi", "PMI rate")
+	homeCmd.Flags().Var(flagx.NewDecVal(&hf.MonthlyHoa), "hoa", "Monthly HOA fee")
 
 	homeCmd.MarkFlagRequired("price")
 	homeCmd.MarkFlagRequired("rate")

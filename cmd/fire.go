@@ -1,12 +1,10 @@
 package cmd
 
 import (
-	"github.com/rykroon/fincli/internal/cli"
-	"github.com/rykroon/fincli/internal/flag"
+	"github.com/rykroon/fincli/internal/flagx"
+	"github.com/rykroon/fincli/internal/fmtx"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
 )
 
 var fireCmd = &cobra.Command{
@@ -23,15 +21,15 @@ type fireFlags struct {
 var ff fireFlags
 
 func runFireCmd(cmd *cobra.Command, args []string) {
-	fmt := message.NewPrinter(language.English)
+	prt := fmtx.NewDecimalPrinter(sep)
 	fireNumber := ff.AnnualExpenses.Div(ff.SafeWithdrawlRate)
-	fmt.Println("FIRE Number: ", cli.FormatMoney(fireNumber, sep))
+	prt.Printf("FIRE Number: $%.2v", fireNumber)
 }
 
 func init() {
-	fireCmd.Flags().VarP(flag.NewDecVal(&ff.AnnualExpenses), "expenses", "e", "Annual expenses.")
+	fireCmd.Flags().VarP(flagx.NewDecVal(&ff.AnnualExpenses), "expenses", "e", "Annual expenses.")
 	ff.SafeWithdrawlRate = decimal.NewFromFloat(.04)
-	fireCmd.Flags().Var(flag.NewPercentVal(&ff.SafeWithdrawlRate), "swr", "Safe withdrawl rate.")
+	fireCmd.Flags().Var(flagx.NewPercentVal(&ff.SafeWithdrawlRate), "swr", "Safe withdrawl rate.")
 
 	fireCmd.MarkFlagRequired("expenses")
 
