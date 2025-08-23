@@ -2,6 +2,7 @@ package fmtx
 
 import (
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/shopspring/decimal"
@@ -17,54 +18,83 @@ func NewDecFmt(d decimal.Decimal, sep rune) DecFmt {
 }
 
 func (df DecFmt) Format(state fmt.State, verb rune) {
-	w := getWidth(state)
-	p := getPrecision(state)
-	flags := getFlags(state)
-	format := buildFormat(flags, w, p, verb)
-
 	switch verb {
 	case 'v', 's':
-		format := buildFormat(flags, w, -1, 's')
-		fmt.Fprintf(state, format, FormatDecimal(df.decimal, state.Flag('+'), int32(p), df.sep))
+		fmt.Fprint(state, FormatDecimal(state, df.decimal, df.sep))
 
 	case 'e', 'E', 'f', 'F', 'g', 'G':
-		fmt.Fprintf(state, format, df.decimal.InexactFloat64())
+		fmt.Fprintf(state, fmt.FormatString(state, verb), df.decimal.InexactFloat64())
 
 	default:
-		fmt.Fprintf(state, format, df.decimal)
+		fmt.Fprintf(state, fmt.FormatString(state, verb), df.decimal)
 	}
 }
 
-func FormatDecimal(d decimal.Decimal, alwaysPrintSign bool, precision int32, sep rune) string {
-	if precision >= 0 {
-		return formatNumberString(d.StringFixed(precision), alwaysPrintSign, sep)
-	} else {
-		return formatNumberString(d.String(), alwaysPrintSign, sep)
-	}
-}
-
-func formatNumberString(s string, alwaysPrintSign bool, sep rune) string {
-	parts := strings.SplitN(s, ".", 2)
-	intPart := parts[0]
-	sign := ""
-	if strings.HasPrefix(intPart, "-") {
+func FormatDecimal(state fmt.State, d decimal.Decimal, sep rune) string {
+	// --- sign ---
+	var sign string
+	if d.IsNegative() {
 		sign = "-"
-		intPart = intPart[1:]
-	} else if alwaysPrintSign {
-		sign = "+"
+	} else {
+		sign = GetPositiveSign(state)
 	}
 
-	// Insert separators
-	var out strings.Builder
-	for i, r := range intPart {
-		if i > 0 && (len(intPart)-i)%3 == 0 {
-			out.WriteRune(sep)
+	// number string (with thousands sep)
+	numStr := AddThousandsSep(d.Abs().BigInt(), sep)
+
+	// precision (fractional part)
+	if !d.IsInteger() {
+		var decStr string
+		if p, ok := state.Precision(); ok {
+			decStr = d.StringFixed(int32(p))
+		} else {
+			decStr = d.String()
 		}
-		out.WriteRune(r)
+		parts := strings.SplitN(decStr, ".", 2)
+		if len(parts) > 1 {
+			numStr += "." + parts[1]
+		}
 	}
 
-	if len(parts) == 2 {
-		return sign + out.String() + "." + parts[1]
+	// --- width/ padding ---
+	numLength := len(sign) + len(numStr)
+	padding := BuildPadding(state, numLength)
+
+	if LeftAlign(state) {
+		// sign + num + padding
+		return sign + numStr + padding
+	} else if ZeroPad(state) {
+		// sign + zeros + num
+		return sign + padding + numStr
+	} else {
+		// spaces + sign + number
+		return padding + sign + numStr
 	}
-	return sign + out.String()
+}
+
+func AddThousandsSep(b *big.Int, sep rune) string {
+	intStr := b.String()
+	if sep == 0 {
+		return intStr
+	}
+
+	var bld strings.Builder
+
+	if intStr[0] == '-' {
+		intStr = intStr[1:]
+		bld.WriteRune('-')
+	}
+
+	n := len(intStr)
+	firstGroupLen := n % 3
+	if firstGroupLen == 0 {
+		firstGroupLen = 3
+	}
+
+	bld.WriteString(intStr[:firstGroupLen])
+	for i := firstGroupLen; i < n; i += 3 {
+		bld.WriteRune(sep)
+		bld.WriteString(intStr[i : i+3])
+	}
+	return bld.String()
 }

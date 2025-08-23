@@ -1,51 +1,66 @@
 package fmtx
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
-func getFlags(state fmt.State) string {
-	flags := ""
-	if state.Flag('+') {
-		flags += "+"
-	}
-	if state.Flag('-') {
-		flags += "-"
-	}
-	if state.Flag('0') {
-		flags += "0"
-	}
-	if state.Flag(' ') {
-		flags += " "
-	}
-	if state.Flag('#') {
-		flags += "#"
-	}
+// func GetWidth(state fmt.State) int {
+// 	if w, ok := state.Width(); ok {
+// 		return w
+// 	}
+// 	return -1
+// }
 
-	return flags
+// func GetPrecision(state fmt.State) int {
+// 	if p, ok := state.Precision(); ok {
+// 		return p
+// 	}
+// 	return -1
+//}
+
+func AlwaysPrintSign(state fmt.State) bool {
+	return state.Flag('+')
 }
 
-func getWidth(state fmt.State) int {
-	if w, ok := state.Width(); ok {
-		return w
-	}
-	return -1
+func LeftAlign(state fmt.State) bool {
+	return state.Flag('-')
 }
 
-func getPrecision(state fmt.State) int {
-	if p, ok := state.Precision(); ok {
-		return p
-	}
-	return -1
+func AlternateFormat(state fmt.State) bool {
+	return state.Flag('#')
 }
 
-func buildFormat(flags string, width, precision int, verb rune) string {
-	format := "%"
-	format += flags
-	if width >= 0 {
-		format += fmt.Sprintf("%d", width)
+func LeaveSpaceForSign(state fmt.State) bool {
+	return state.Flag(' ')
+}
+
+func ZeroPad(state fmt.State) bool {
+	return state.Flag('0')
+}
+
+func GetPositiveSign(state fmt.State) string {
+	if AlwaysPrintSign(state) {
+		return "+"
+	} else if LeaveSpaceForSign(state) {
+		return " "
+	} else {
+		return ""
 	}
-	if precision >= 0 {
-		format += fmt.Sprintf(".%d", precision)
+}
+
+func PadChar(state fmt.State) rune {
+	if ZeroPad(state) && !LeftAlign(state) {
+		return '0'
 	}
-	format += string(verb)
-	return format
+	return ' '
+}
+
+func BuildPadding(state fmt.State, strLen int) string {
+	w, ok := state.Width()
+	if !ok || strLen > w {
+		return ""
+	}
+	padLen := w - strLen
+	return strings.Repeat(string(PadChar(state)), padLen)
 }

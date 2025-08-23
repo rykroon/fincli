@@ -6,24 +6,24 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type NumberPrinter struct {
+type DecimalPrinter struct {
 	sep rune
 }
 
-func NewNumberPrinter(sep rune) NumberPrinter {
-	return NumberPrinter{sep}
+func NewDecimalPrinter(sep rune) DecimalPrinter {
+	return DecimalPrinter{sep}
 }
 
-func (p NumberPrinter) Printf(format string, a ...any) (int, error) {
+func (p DecimalPrinter) Printf(format string, a ...any) (int, error) {
 	return fmt.Printf(format, p.transformArgs(a)...)
 }
 
-func (p NumberPrinter) Println(a ...any) (int, error) {
+func (p DecimalPrinter) Println(a ...any) (int, error) {
 	return fmt.Println(a...)
 }
 
 // Wrap decimal.Decimal in DecFmt with separator.
-func (p NumberPrinter) transformArgs(args []any) []any {
+func (p DecimalPrinter) transformArgs(args []any) []any {
 	out := make([]any, 0, len(args))
 	for _, arg := range args {
 		switch v := arg.(type) {
