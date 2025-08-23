@@ -18,13 +18,17 @@ var amortizeCmd = &cobra.Command{
 }
 
 type amortizeFlags struct {
-	Amount              decimal.Decimal
+	Principal           decimal.Decimal
 	Rate                decimal.Decimal
 	Years               int64
 	ExtraMonthlyPayment decimal.Decimal
 	ExtraAnnualPayment  decimal.Decimal
 	MonthlySchedule     bool
 	AnnualSchedule      bool
+}
+
+func (af amortizeFlags) MonthlyRate() decimal.Decimal {
+	return af.Rate.Div(decimal.NewFromInt(12))
 }
 
 func (af amortizeFlags) HasExtraPayment() bool {
@@ -50,10 +54,8 @@ func runAmortizeCmd(cmd *cobra.Command, args []string) {
 	sep := getSep(cmd)
 	prt := fmtx.NewDecimalPrinter(sep)
 
-	twelve := decimal.NewFromInt(12)
-	monthlyRate := af.Rate.Div(twelve)
 	numPeriods := af.Years * 12
-	sched := mortgage.CalculateSchedule(af.Amount, monthlyRate, numPeriods, af.ExtraPaymentStrategy())
+	sched := mortgage.CalculateSchedule(af.Principal, af.MonthlyRate(), numPeriods, af.ExtraPaymentStrategy())
 
 	prt.Printf("Monthly Payment: $%.2v\n", sched.MonthlyPayment)
 	if !sched.MonthlyPayment.Round(2).Equal(sched.AverageMonthlyPayment().Round(2)) {
@@ -63,6 +65,7 @@ func runAmortizeCmd(cmd *cobra.Command, args []string) {
 	prt.Printf("Total Amount Paid: $%.2v\n", sched.TotalAmount)
 	prt.Printf("Total Interest Paid: $%.2v\n", sched.TotalInterest)
 
+	twelve := decimal.NewFromInt(12)
 	years := sched.NumPeriods().Div(twelve)
 	months := sched.NumPeriods().Mod(twelve)
 	prt.Printf("Pay off in %v years and %v months\n", years, months)
@@ -152,20 +155,20 @@ func printAnnualSchedule(schedule mortgage.Schedule) {
 
 func init() {
 	amortizeCmd.Flags().VarP(
-		flagx.NewDecVal(&af.Amount), "amount", "a", "The loan amount borrowed.",
+		flagx.NewDecVal(&af.Principal), "principal", "p", "The principal (loan amount)",
 	)
-	amortizeCmd.Flags().VarP(flagx.NewPercentVal(&af.Rate), "rate", "r", "Annual interest rate.")
+	amortizeCmd.Flags().VarP(flagx.NewPercentVal(&af.Rate), "rate", "r", "Annual interest rate")
 	amortizeCmd.Flags().Int64VarP(&af.Years, "years", "y", 30, "Loan term in years")
 
-	amortizeCmd.MarkFlagRequired("amount")
+	amortizeCmd.MarkFlagRequired("principal")
 	amortizeCmd.MarkFlagRequired("rate")
 
 	// optional flags
-	amortizeCmd.Flags().Var(flagx.NewDecVal(&af.ExtraMonthlyPayment), "extra-monthly", "Extra monthly payment.")
-	amortizeCmd.Flags().Var(flagx.NewDecVal(&af.ExtraAnnualPayment), "extra-annual", "Extra annual payment.")
+	amortizeCmd.Flags().Var(flagx.NewDecVal(&af.ExtraMonthlyPayment), "extra-monthly", "Extra monthly payment")
+	amortizeCmd.Flags().Var(flagx.NewDecVal(&af.ExtraAnnualPayment), "extra-annual", "Extra annual payment")
 
-	amortizeCmd.Flags().BoolVar(&af.MonthlySchedule, "monthly-schedule", false, "Print the monthly amortization schedule.")
-	amortizeCmd.Flags().BoolVar(&af.AnnualSchedule, "annual-schedule", false, "Print the annual amortization schedule.")
+	amortizeCmd.Flags().BoolVar(&af.MonthlySchedule, "monthly-schedule", false, "Print the monthly amortization schedule")
+	amortizeCmd.Flags().BoolVar(&af.AnnualSchedule, "annual-schedule", false, "Print the annual amortization schedule")
 
 	amortizeCmd.MarkFlagsMutuallyExclusive("monthly-schedule", "annual-schedule")
 

@@ -23,7 +23,8 @@ var ff fireFlags
 func runFireCmd(cmd *cobra.Command, args []string) {
 	prt := fmtx.NewDecimalPrinter(sep)
 	fireNumber := ff.AnnualExpenses.Div(ff.SafeWithdrawlRate)
-	prt.Printf("FIRE Number: $%.2v", fireNumber)
+	prt.Printf("FIRE Number: $%.2v\n", fireNumber)
+	prt.Printf("Safe Withdrawl Rate: %.2v%%\n", ff.SafeWithdrawlRate.Mul(decimal.NewFromInt(100)))
 }
 
 func init() {

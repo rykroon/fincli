@@ -15,9 +15,9 @@ var monthlyCmd = &cobra.Command{
 }
 
 type monthlyFlags struct {
-	Amount decimal.Decimal
-	Rate   decimal.Decimal
-	Years  int64
+	Principal decimal.Decimal
+	Rate      decimal.Decimal
+	Years     int64
 }
 
 var mf monthlyFlags
@@ -28,7 +28,7 @@ func runMonthlyCmd(cmd *cobra.Command, args []string) {
 
 	monthlyRate := mf.Rate.Div(decimal.NewFromInt(12))
 	numPeriods := mf.Years * 12
-	sched := mortgage.CalculateSchedule(mf.Amount, monthlyRate, numPeriods, mortgage.NoExtraPayment())
+	sched := mortgage.CalculateSchedule(mf.Principal, monthlyRate, numPeriods, mortgage.NoExtraPayment())
 
 	prt.Printf("Monthly Payment: $%.2v\n", sched.MonthlyPayment)
 	prt.Printf("Total Amount Paid: $%.2v\n", sched.TotalAmount)
@@ -37,12 +37,12 @@ func runMonthlyCmd(cmd *cobra.Command, args []string) {
 
 func init() {
 	monthlyCmd.Flags().VarP(
-		flagx.NewDecVal(&mf.Amount), "amount", "a", "The loan amount borrowed.",
+		flagx.NewDecVal(&mf.Principal), "principal", "p", "Principal (loan amount)",
 	)
 	monthlyCmd.Flags().VarP(flagx.NewPercentVal(&mf.Rate), "rate", "r", "Annual interest rate.")
 	monthlyCmd.Flags().Int64VarP(&mf.Years, "years", "y", 30, "Loan term in years")
 
-	monthlyCmd.MarkFlagRequired("amount")
+	monthlyCmd.MarkFlagRequired("principal")
 	monthlyCmd.MarkFlagRequired("rate")
 
 	monthlyCmd.Flags().SortFlags = false
