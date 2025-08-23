@@ -29,7 +29,6 @@ func init() {
 	rootCmd.AddCommand(homeCmd)
 	rootCmd.AddCommand(fireCmd)
 	rootCmd.AddCommand(taxCmd)
-	rootCmd.AddCommand(playgroundCmd)
 
 	rootCmd.PersistentFlags().Var(flagx.NewRuneVal(&sep, []rune{',', '_'}), "sep", "thousands separator")
 }
