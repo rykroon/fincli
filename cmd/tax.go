@@ -20,6 +20,7 @@ type taxFlags struct {
 	income       decimal.Decimal
 	filingStatus string
 	year         int
+	adjustments  decimal.Decimal
 }
 
 var tf taxFlags
@@ -30,15 +31,19 @@ func runTaxCmd(cmd *cobra.Command, args []string) error {
 		return errors.New("tax table not found")
 	}
 
-	taxesDue := config.CalculateTax(tf.income)
+	adjustedGrossIncome := tf.income.Sub(tf.adjustments)
+	taxesDue := config.CalculateTax(adjustedGrossIncome)
 	effectiveTaxRate := taxesDue.Div(tf.income)
-	bracket := config.GetBracketByIncome(tf.income)
+	bracket := config.GetMarginalBracket(adjustedGrossIncome)
 
 	prt := fmtx.NewDecimalPrinter(sep)
-	prt.Printf("%-18s $%.2v\n", "Taxes Due:", taxesDue)
-	prt.Printf("%-18s %.2v%%\n", "Effective Tax Rate:", effectiveTaxRate.Mul(decimal.NewFromInt(100)))
-	prt.Printf("Tax Bracket: %12v%%\n", bracket.Rate.Mul(decimal.NewFromInt(100)))
+	prt.Printf("Income: $%.2v\n", tf.income)
+	prt.Printf("AGI (Adjusted Gross Income): $%.2v\n", adjustedGrossIncome)
 	prt.Printf("Standard Deduction: $%.2v\n", config.StandardDeduction)
+	prt.Printf("Taxes Due: $%.2v\n", taxesDue)
+	prt.Printf("Marginal Tax Rate: %v%%\n", bracket.Rate.Mul(decimal.NewFromInt(100)))
+	prt.Printf("Effective Tax Rate: %.2v%%\n", effectiveTaxRate.Mul(decimal.NewFromInt(100)))
+
 	return nil
 }
 
@@ -46,5 +51,6 @@ func init() {
 	taxCmd.Flags().VarP(flagx.NewDecVal(&tf.income), "income", "i", "Your gross income")
 	taxCmd.Flags().StringVarP(&tf.filingStatus, "filing-status", "f", "single", "Your filing status")
 	taxCmd.Flags().IntVarP(&tf.year, "year", "y", 2025, "Tax year")
+	taxCmd.Flags().Var(flagx.NewDecVal(&tf.adjustments), "adjustments", "adjustments (ex: Reitrement Contributions, Student Loan Interest)")
 	taxCmd.MarkFlagRequired("income")
 }
