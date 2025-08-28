@@ -43,17 +43,15 @@ func FormatDecimal(state fmt.State, d decimal.Decimal, sep rune) string {
 	numStr := AddThousandsSep(d.Abs().BigInt(), sep)
 
 	// precision (fractional part)
-	if !d.IsInteger() {
-		var decStr string
-		if p, ok := state.Precision(); ok {
-			decStr = d.StringFixed(int32(p))
-		} else {
-			decStr = d.String()
-		}
-		parts := strings.SplitN(decStr, ".", 2)
-		if len(parts) > 1 {
-			numStr += "." + parts[1]
-		}
+	var decStr string
+	if p, ok := state.Precision(); ok {
+		decStr = d.StringFixed(int32(p))
+	} else {
+		decStr = d.String()
+	}
+	parts := strings.SplitN(decStr, ".", 2)
+	if len(parts) > 1 {
+		numStr += "." + parts[1]
 	}
 
 	// --- width/ padding ---
