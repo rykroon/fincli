@@ -37,9 +37,10 @@ func runTaxCmd(cmd *cobra.Command, args []string) error {
 	bracket := config.GetMarginalBracket(adjustedGrossIncome)
 
 	prt := fmtx.NewDecimalPrinter(sep)
-	prt.Printf("Income: $%.2v\n", tf.income)
-	prt.Printf("AGI (Adjusted Gross Income): $%.2v\n", adjustedGrossIncome)
+	prt.Printf("Gross Income: $%.2v\n", tf.income)
+	prt.Printf("Adjusted Gross Income: $%.2v\n", adjustedGrossIncome)
 	prt.Printf("Standard Deduction: $%.2v\n", config.StandardDeduction)
+	prt.Printf("Taxable Income: $%.2v\n", adjustedGrossIncome.Sub(config.StandardDeduction))
 	prt.Printf("Taxes Due: $%.2v\n", taxesDue)
 	prt.Printf("Marginal Tax Rate: %v%%\n", bracket.Rate.Mul(decimal.NewFromInt(100)))
 	prt.Printf("Effective Tax Rate: %.2v%%\n", effectiveTaxRate.Mul(decimal.NewFromInt(100)))
