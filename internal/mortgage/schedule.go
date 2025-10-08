@@ -5,17 +5,16 @@ import (
 )
 
 type Schedule struct {
-	MonthlyPayment  decimal.Decimal
-	StartingBalance decimal.Decimal
-	Payments        []Payment
-	TotalAmount     decimal.Decimal
-	TotalInterest   decimal.Decimal
+	Loan          *Loan
+	Payments      []Payment
+	TotalAmount   decimal.Decimal
+	TotalInterest decimal.Decimal
 }
 
 func (s *Schedule) appendPayment(p Payment) {
 	s.Payments = append(s.Payments, p)
 	s.TotalAmount = s.TotalAmount.Add(p.Total())
-	s.TotalInterest = s.TotalInterest.Add(p.Interest())
+	s.TotalInterest = s.TotalInterest.Add(p.Interest)
 }
 
 func (s Schedule) NumPeriods() decimal.Decimal {
@@ -26,23 +25,18 @@ func (s Schedule) AverageMonthlyPayment() decimal.Decimal {
 	return s.TotalAmount.Div(s.NumPeriods())
 }
 
-func CalculateSchedule(p decimal.Decimal, i decimal.Decimal, n int64, extraPaymentStratgey ExtraPaymentStrategy) Schedule {
-	balance := p
+func CalculateSchedule(loan *Loan) Schedule {
+	balance := loan.Principal
 	schedule := Schedule{
-		MonthlyPayment:  CalculateMonthlyPayment(p, i, n),
-		StartingBalance: balance,
-		Payments:        make([]Payment, 0, n),
+		Loan:     loan,
+		Payments: make([]Payment, 0, loan.NumPeriods()),
 	}
 	for period := 1; balance.Round(2).GreaterThan(decimal.Zero); period++ {
-		interest := balance.Mul(i)
-		principal := schedule.MonthlyPayment.Sub(interest)
+		paymentAmount := DefaultStrategy{}.NextPayment(loan)
+		interest := balance.Mul(loan.MonthlyRate())
+		principal := paymentAmount.Sub(interest)
+		balance = balance.Sub(principal)
 		payment := newPayment(period, principal, interest, balance)
-		if extraPaymentStratgey != nil {
-			extraPrincipal := extraPaymentStratgey(period, principal, interest)
-			payment.SetExtraPrincipal(extraPrincipal)
-		}
-
-		balance = payment.Balance()
 		schedule.appendPayment(payment)
 	}
 	return schedule

@@ -26,11 +26,12 @@ func runMonthlyCmd(cmd *cobra.Command, args []string) {
 	sep := getSep(cmd)
 	prt := fmtx.NewDecimalPrinter(sep)
 
-	monthlyRate := mf.Rate.Div(decimal.NewFromInt(12))
-	numPeriods := mf.Years * 12
-	sched := mortgage.CalculateSchedule(mf.Principal, monthlyRate, numPeriods, mortgage.NoExtraPayment())
-
-	prt.Printf("Monthly Payment: $%.2v\n", sched.MonthlyPayment)
+	loan := mortgage.NewLoan(
+		mf.Principal, mf.Rate, mf.Years,
+	)
+	sched := mortgage.CalculateSchedule(loan)
+	monthlyPayment := mortgage.CalculateMonthlyPayment(loan.Principal, loan.MonthlyRate(), loan.NumPeriods())
+	prt.Printf("Monthly Payment: $%.2v\n", monthlyPayment)
 	prt.Printf("Total Amount Paid: $%.2v\n", sched.TotalAmount)
 	prt.Printf("Total Interest Paid: $%.2v\n", sched.TotalInterest)
 }
