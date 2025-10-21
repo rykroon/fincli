@@ -31,12 +31,13 @@ func CalculateSchedule(loan *Loan) Schedule {
 		Loan:     loan,
 		Payments: make([]Payment, 0, loan.NumPeriods()),
 	}
+	strategy := DefaultStrategy{}
 	for period := 1; balance.Round(2).GreaterThan(decimal.Zero); period++ {
-		paymentAmount := DefaultStrategy{}.NextPayment(loan)
+		paymentAmount := strategy.NextPayment(loan)
 		interest := balance.Mul(loan.MonthlyRate())
 		principal := paymentAmount.Sub(interest)
 		balance = balance.Sub(principal)
-		payment := newPayment(period, principal, interest, balance)
+		payment := NewPayment(period, principal, interest, balance)
 		schedule.appendPayment(payment)
 	}
 	return schedule
