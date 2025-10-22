@@ -7,12 +7,11 @@ type FilingConfig struct {
 	StandardDeduction decimal.Decimal
 }
 
-func (c *FilingConfig) setStandardDeductionInt(i int64) {
-	c.StandardDeduction = decimal.NewFromInt(i)
-}
-
-func (c *FilingConfig) addBracket(b Bracket) {
-	c.Brackets = append(c.Brackets, b)
+func NewFilingConfig(standardDeduction int64, brackets ...Bracket) FilingConfig {
+	return FilingConfig{
+		Brackets:          brackets,
+		StandardDeduction: decimal.NewFromInt(standardDeduction),
+	}
 }
 
 func (c FilingConfig) GetMarginalBracket(i decimal.Decimal) Bracket {
@@ -34,7 +33,7 @@ func (c FilingConfig) CalculateTax(income decimal.Decimal) decimal.Decimal {
 			break
 		}
 
-		tax = tax.Add(b.CalculateTax(taxableIncome))
+		tax = tax.Add(b.calculateTax(taxableIncome))
 
 		if taxableIncome.LessThan(b.Upper) {
 			break

@@ -8,15 +8,15 @@ type Bracket struct {
 	Rate  decimal.Decimal
 }
 
-func NewBracket(min, max int64, rate float64) Bracket {
+func NewBracket(lower, upper int64, rate float64) Bracket {
 	return Bracket{
-		Lower: decimal.NewFromInt(min),
-		Upper: decimal.NewFromInt(max),
+		Lower: decimal.NewFromInt(lower),
+		Upper: decimal.NewFromInt(upper),
 		Rate:  decimal.NewFromFloat(rate),
 	}
 }
 
-func (b Bracket) CalculateTax(income decimal.Decimal) decimal.Decimal {
+func (b Bracket) calculateTax(income decimal.Decimal) decimal.Decimal {
 	if income.LessThan(b.Lower) {
 		return decimal.Zero
 	}
