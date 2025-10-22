@@ -18,14 +18,11 @@ func (c *FilingConfig) addBracket(b Bracket) {
 func (c FilingConfig) GetMarginalBracket(i decimal.Decimal) Bracket {
 	taxableIncome := i.Sub(c.StandardDeduction)
 	for _, bracket := range c.Brackets {
-		if bracket.Max.IsZero() {
-			return bracket
-		}
-		if bracket.Min.LessThan(taxableIncome) && taxableIncome.LessThan(bracket.Max) {
+		if bracket.Lower.LessThan(taxableIncome) && taxableIncome.LessThan(bracket.Upper) {
 			return bracket
 		}
 	}
-	panic("a bracket should have been found")
+	panic("a bracket could not be found")
 }
 
 func (c FilingConfig) CalculateTax(income decimal.Decimal) decimal.Decimal {
@@ -33,13 +30,13 @@ func (c FilingConfig) CalculateTax(income decimal.Decimal) decimal.Decimal {
 	taxableIncome := income.Sub(c.StandardDeduction)
 
 	for _, b := range c.Brackets {
-		if taxableIncome.LessThanOrEqual(b.Min) {
+		if taxableIncome.LessThanOrEqual(b.Lower) {
 			break
 		}
 
 		tax = tax.Add(b.CalculateTax(taxableIncome))
 
-		if taxableIncome.LessThan(b.Max) {
+		if taxableIncome.LessThan(b.Upper) {
 			break
 		}
 	}

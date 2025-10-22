@@ -1,15 +1,17 @@
 package taxes
 
+const maxIncome int64 = 1_000_000_000_000_000
+
 func buildSingle2025() FilingConfig {
 	fc := FilingConfig{}
 	fc.setStandardDeductionInt(15000)
-	fc.addBracket(NewBracket(0, 11925, .10))
-	fc.addBracket(NewBracket(11925, 48475, .12))
-	fc.addBracket(NewBracket(48475, 103350, .22))
-	fc.addBracket(NewBracket(103350, 197300, .24))
-	fc.addBracket(NewBracket(197300, 250525, .32))
-	fc.addBracket(NewBracket(250525, 626350, .35))
-	fc.addBracket(NewBracket(626350, 0, .37))
+	fc.addBracket(NewBracket(0, 11_925, .10))
+	fc.addBracket(NewBracket(11_925, 48_475, .12))
+	fc.addBracket(NewBracket(48_475, 103_350, .22))
+	fc.addBracket(NewBracket(103_350, 197_300, .24))
+	fc.addBracket(NewBracket(197_300, 250_525, .32))
+	fc.addBracket(NewBracket(250_525, 626_350, .35))
+	fc.addBracket(NewBracket(626_350, maxIncome, .37))
 	return fc
 }
 
@@ -22,7 +24,7 @@ func buildMarriedJointly2025() FilingConfig {
 	fc.addBracket(NewBracket(206_700, 394_600, .24))
 	fc.addBracket(NewBracket(394_600, 501_050, .32))
 	fc.addBracket(NewBracket(501_050, 751_600, .35))
-	fc.addBracket(NewBracket(751_600, 0, .37))
+	fc.addBracket(NewBracket(751_600, maxIncome, .37))
 	return fc
 }
 
