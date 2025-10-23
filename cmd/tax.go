@@ -38,7 +38,7 @@ func runTaxCmd(cmd *cobra.Command, args []string) error {
 	adjustedGrossIncome := tf.income.Sub(tf.adjustments)
 	taxesDue := config.CalculateTax(adjustedGrossIncome)
 	effectiveTaxRate := taxesDue.Div(tf.income)
-	bracket := config.GetMarginalBracket(adjustedGrossIncome)
+	// bracket := config.GetMarginalBracket(adjustedGrossIncome)
 
 	oneHundred := decimal.NewFromInt(100)
 
@@ -47,7 +47,7 @@ func runTaxCmd(cmd *cobra.Command, args []string) error {
 	prt.Printf("  Standard Deduction: $%.2v\n", config.StandardDeduction)
 	prt.Printf("  Taxable Income: $%.2v\n", adjustedGrossIncome.Sub(config.StandardDeduction))
 	prt.Printf("  Taxes Due: $%.2v\n", taxesDue)
-	prt.Printf("  Marginal Tax Rate: %v%%\n", bracket.Rate.Mul(oneHundred))
+	// prt.Printf("  Marginal Tax Rate: %v%%\n", bracket.Rate.Mul(oneHundred))
 	prt.Printf("  Effective Tax Rate: %.2v%%\n", effectiveTaxRate.Mul(oneHundred))
 	prt.Println("")
 
