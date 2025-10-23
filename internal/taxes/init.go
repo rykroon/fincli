@@ -34,3 +34,7 @@ var UsFederalTaxTable = TaxTable{
 		MarriedJoint: buildMarriedJointly2025(),
 	},
 }
+
+// There are some nuances to these taxes at higher incomes, so it's not actually a flat tax.
+var SocialSecurityTax = NewBracket(0, 176_100, .062)
+var MedicareTax = NewFlatTax(.0145)

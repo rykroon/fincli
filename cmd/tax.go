@@ -26,6 +26,10 @@ type taxFlags struct {
 var tf taxFlags
 
 func runTaxCmd(cmd *cobra.Command, args []string) error {
+	prt := fmtx.NewDecimalPrinter(sep)
+	prt.Printf("Gross Income: $%.2v\n", tf.income)
+	prt.Println("")
+
 	config, ok := taxes.UsFederalTaxTable.GetConfig(tf.year, taxes.FilingStatus(tf.filingStatus))
 	if !ok {
 		return errors.New("tax table not found")
@@ -36,14 +40,23 @@ func runTaxCmd(cmd *cobra.Command, args []string) error {
 	effectiveTaxRate := taxesDue.Div(tf.income)
 	bracket := config.GetMarginalBracket(adjustedGrossIncome)
 
-	prt := fmtx.NewDecimalPrinter(sep)
-	prt.Printf("Gross Income: $%.2v\n", tf.income)
-	prt.Printf("Adjusted Gross Income: $%.2v\n", adjustedGrossIncome)
-	prt.Printf("Standard Deduction: $%.2v\n", config.StandardDeduction)
-	prt.Printf("Taxable Income: $%.2v\n", adjustedGrossIncome.Sub(config.StandardDeduction))
-	prt.Printf("Taxes Due: $%.2v\n", taxesDue)
-	prt.Printf("Marginal Tax Rate: %v%%\n", bracket.Rate.Mul(decimal.NewFromInt(100)))
-	prt.Printf("Effective Tax Rate: %.2v%%\n", effectiveTaxRate.Mul(decimal.NewFromInt(100)))
+	oneHundred := decimal.NewFromInt(100)
+
+	prt.Println("Federal Tax")
+	prt.Printf("  Adjusted Gross Income: $%.2v\n", adjustedGrossIncome)
+	prt.Printf("  Standard Deduction: $%.2v\n", config.StandardDeduction)
+	prt.Printf("  Taxable Income: $%.2v\n", adjustedGrossIncome.Sub(config.StandardDeduction))
+	prt.Printf("  Taxes Due: $%.2v\n", taxesDue)
+	prt.Printf("  Marginal Tax Rate: %v%%\n", bracket.Rate.Mul(oneHundred))
+	prt.Printf("  Effective Tax Rate: %.2v%%\n", effectiveTaxRate.Mul(oneHundred))
+	prt.Println("")
+
+	// FICA Tax
+	socialSecurityTax := taxes.SocialSecurityTax.CalculateTax(tf.income)
+	medicareTax := taxes.MedicareTax.CalculateTax(tf.income)
+	prt.Println("FICA Tax")
+	prt.Printf("  Social Security Tax (%v%%): $%.2v\n", taxes.SocialSecurityTax.Rate.Mul(oneHundred), socialSecurityTax)
+	prt.Printf("  Medicare Tax (%v%%): $%.2v\n", taxes.MedicareTax.Rate.Mul(oneHundred), medicareTax)
 
 	return nil
 }

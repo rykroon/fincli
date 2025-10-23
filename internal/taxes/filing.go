@@ -33,7 +33,7 @@ func (c FilingConfig) CalculateTax(income decimal.Decimal) decimal.Decimal {
 			break
 		}
 
-		tax = tax.Add(b.calculateTax(taxableIncome))
+		tax = tax.Add(b.CalculateTax(taxableIncome))
 
 		if taxableIncome.LessThan(b.Upper) {
 			break

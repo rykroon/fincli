@@ -16,7 +16,7 @@ func NewBracket(lower, upper int64, rate float64) Bracket {
 	}
 }
 
-func (b Bracket) calculateTax(income decimal.Decimal) decimal.Decimal {
+func (b Bracket) CalculateTax(income decimal.Decimal) decimal.Decimal {
 	if income.LessThan(b.Lower) {
 		return decimal.Zero
 	}
