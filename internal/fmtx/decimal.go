@@ -23,6 +23,7 @@ func (df DecFmt) Format(state fmt.State, verb rune) {
 		fmt.Fprint(state, FormatDecimal(state, df.decimal, df.sep))
 
 	case 'e', 'E', 'f', 'F', 'g', 'G':
+		// handle decimal as float
 		fmt.Fprintf(state, fmt.FormatString(state, verb), df.decimal.InexactFloat64())
 
 	default:

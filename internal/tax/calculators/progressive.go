@@ -1,4 +1,4 @@
-package taxes
+package calculators
 
 import "github.com/shopspring/decimal"
 
@@ -36,6 +36,11 @@ func (c ProgressiveTax) CalculateTax(income decimal.Decimal) decimal.Decimal {
 		}
 	}
 	return tax
+}
+
+func (t *ProgressiveTax) AddBracket(lower, upper int64, rate float64) *ProgressiveTax {
+	t.Brackets = append(t.Brackets, NewBracket(lower, upper, rate))
+	return t
 }
 
 type Bracket struct {

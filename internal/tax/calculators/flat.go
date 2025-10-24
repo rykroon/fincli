@@ -1,4 +1,4 @@
-package taxes
+package calculators
 
 import "github.com/shopspring/decimal"
 
