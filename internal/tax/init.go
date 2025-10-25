@@ -9,11 +9,11 @@ const maxIncome int64 = 1_000_000_000_000_000
 
 func buildUsTaxSystem2025() UsTaxSystem {
 	system := UsTaxSystem{
-		map[FilingStatus]decimal.Decimal{
+		StandardDeductions: map[FilingStatus]decimal.Decimal{
 			Single:       decimal.NewFromInt(15_000),
 			MarriedJoint: decimal.NewFromInt(31_500),
 		},
-		map[FilingStatus]calculators.TaxCalculator{
+		Calculators: map[FilingStatus]calculators.ProgressiveTax{
 			Single:       buildUsSingle2025(),
 			MarriedJoint: buildUsMarriedJointly2025(),
 		},
@@ -45,10 +45,17 @@ func buildUsMarriedJointly2025() calculators.ProgressiveTax {
 	return t
 }
 
-var UsFederalRegistry = TaxRegistry[UsTaxSystem]{
+var UsFederalRegistry = map[uint16]UsTaxSystem{
 	2025: buildUsTaxSystem2025(),
 }
 
-// There are some nuances to these taxes at higher incomes, so it's not actually a flat tax.
-var SocialSecurityTax = calculators.NewCappedTax(.062, 176_100)
-var MedicareTax = calculators.NewFlatTax(.0145)
+var FicaRegistry = map[uint16]FicaTaxSystem{
+	2025: buildFica2025(),
+}
+
+func buildFica2025() FicaTaxSystem {
+	return FicaTaxSystem{
+		SocialSecurityTax: calculators.NewCappedTax(.062, 176_100),
+		MedicareTax:       calculators.NewFlatTax(.0145),
+	}
+}

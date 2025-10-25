@@ -39,29 +39,40 @@ func runTaxCmd(cmd *cobra.Command, args []string) error {
 		tax.Adjustment{Label: "Adjustments", Amount: tf.adjustments},
 	)
 
-	adjustedGrossIncome := tf.income.Sub(tf.adjustments)
-	taxesDue := usTaxSystem.CalculateTax(taxPayer)
-	// taxesDue := config.CalculateTax(adjustedGrossIncome)
-	effectiveTaxRate := taxesDue.Div(tf.income)
+	usTaxResult := usTaxSystem.CalculateTax(taxPayer)
+	effectiveTaxRate := usTaxResult.TaxesDue.Div(tf.income)
 	// bracket := config.GetMarginalBracket(adjustedGrossIncome)
 
 	oneHundred := decimal.NewFromInt(100)
 
 	prt.Println("Federal Tax")
-	prt.Printf("  Adjusted Gross Income: $%.2v\n", adjustedGrossIncome)
-	prt.Printf("  Standard Deduction: $%.2v\n", usTaxSystem.StandardDeductions[taxPayer.FilingStatus])
-	// prt.Printf("  Taxable Income: $%.2v\n", adjustedGrossIncome.Sub(config.StandardDeduction))
-	prt.Printf("  Taxes Due: $%.2v\n", taxesDue)
+	prt.Printf("  Adjusted Gross Income: $%.2v\n", usTaxResult.AdjustedGrossIncome)
+	prt.Printf("  Standard Deduction: $%.2v\n", usTaxResult.StandardDeduction)
+	prt.Printf("  Taxable Income: $%.2v\n", usTaxResult.TaxableIncome)
+	prt.Printf("  Taxes Due: $%.2v\n", usTaxResult.TaxesDue)
 	// prt.Printf("  Marginal Tax Rate: %v%%\n", bracket.Rate.Mul(oneHundred))
 	prt.Printf("  Effective Tax Rate: %.2v%%\n", effectiveTaxRate.Mul(oneHundred))
 	prt.Println("")
 
 	// FICA Tax
-	socialSecurityTax := tax.SocialSecurityTax.CalculateTax(tf.income)
-	medicareTax := tax.MedicareTax.CalculateTax(tf.income)
+	ficaTaxSystem, ok := tax.FicaRegistry[tf.year]
+	if !ok {
+		panic("FICA tax system not found")
+	}
+
+	ficaTaxResult := ficaTaxSystem.CalculateTax(taxPayer)
+
 	prt.Println("FICA Tax")
-	prt.Printf("  Social Security Tax (%v%%): $%.2v\n", tax.SocialSecurityTax.Rate.Mul(oneHundred), socialSecurityTax)
-	prt.Printf("  Medicare Tax (%v%%): $%.2v\n", tax.MedicareTax.Rate.Mul(oneHundred), medicareTax)
+	prt.Printf(
+		"  Social Security Tax (%v%%): $%.2v\n",
+		ficaTaxSystem.SocialSecurityTax.Rate.Mul(oneHundred),
+		ficaTaxResult.SocialSecurityTaxDue,
+	)
+	prt.Printf(
+		"  Medicare Tax (%v%%): $%.2v\n",
+		ficaTaxSystem.MedicareTax.Rate.Mul(oneHundred),
+		ficaTaxResult.MedicareTaxDue,
+	)
 
 	return nil
 }
