@@ -10,8 +10,8 @@ type FlatTax struct {
 	Rate decimal.Decimal
 }
 
-func NewFlatTax(rate float64) FlatTax {
-	return FlatTax{Rate: decimal.NewFromFloat(rate)}
+func NewFlatTax[T Number](rate T) FlatTax {
+	return FlatTax{Rate: numToDecimal(rate)}
 }
 
 func (t FlatTax) CalculateTax(income decimal.Decimal) decimal.Decimal {
@@ -23,8 +23,8 @@ type CappedTax struct {
 	Upper decimal.Decimal
 }
 
-func NewCappedTax(rate, upper float64) CappedTax {
-	return CappedTax{decimal.NewFromFloat(rate), decimal.NewFromFloat(upper)}
+func NewCappedTax[T1 Number, T2 Number](rate T1, upper T2) CappedTax {
+	return CappedTax{numToDecimal(rate), numToDecimal(upper)}
 }
 
 func (t CappedTax) CalculateTax(income decimal.Decimal) decimal.Decimal {
@@ -67,8 +67,8 @@ func (c ProgressiveTax) CalculateTax(income decimal.Decimal) decimal.Decimal {
 	return tax
 }
 
-func (t *ProgressiveTax) AddBracket(lower, upper int64, rate float64) *ProgressiveTax {
-	t.Brackets = append(t.Brackets, newBracket(lower, upper, rate))
+func (t *ProgressiveTax) AddBracket(b bracket) *ProgressiveTax {
+	t.Brackets = append(t.Brackets, b)
 	return t
 }
 
@@ -78,11 +78,11 @@ type bracket struct {
 	Rate  decimal.Decimal
 }
 
-func newBracket(lower, upper int64, rate float64) bracket {
+func newBracket[T1 Number, T2 Number, T3 Number](l T1, u T2, r T3) bracket {
 	return bracket{
-		Lower: decimal.NewFromInt(lower),
-		Upper: decimal.NewFromInt(upper),
-		Rate:  decimal.NewFromFloat(rate),
+		Lower: numToDecimal(l),
+		Upper: numToDecimal(u),
+		Rate:  numToDecimal(r),
 	}
 }
 
