@@ -1,7 +1,6 @@
 package tax
 
 import (
-	"github.com/rykroon/fincli/internal/tax/calculators"
 	"github.com/shopspring/decimal"
 )
 
@@ -13,7 +12,7 @@ func buildUsTaxSystem2025() UsTaxSystem {
 			Single:       decimal.NewFromInt(15_000),
 			MarriedJoint: decimal.NewFromInt(31_500),
 		},
-		Calculators: map[FilingStatus]calculators.ProgressiveTax{
+		Calculators: map[FilingStatus]ProgressiveTax{
 			Single:       buildUsSingle2025(),
 			MarriedJoint: buildUsMarriedJointly2025(),
 		},
@@ -21,8 +20,8 @@ func buildUsTaxSystem2025() UsTaxSystem {
 	return system
 }
 
-func buildUsSingle2025() calculators.ProgressiveTax {
-	t := calculators.NewProgressiveTax()
+func buildUsSingle2025() ProgressiveTax {
+	t := NewProgressiveTax()
 	t.AddBracket(0, 11_925, .10)
 	t.AddBracket(11_925, 48_475, .12)
 	t.AddBracket(48_475, 103_350, .22)
@@ -33,8 +32,8 @@ func buildUsSingle2025() calculators.ProgressiveTax {
 	return t
 }
 
-func buildUsMarriedJointly2025() calculators.ProgressiveTax {
-	t := calculators.NewProgressiveTax()
+func buildUsMarriedJointly2025() ProgressiveTax {
+	t := NewProgressiveTax()
 	t.AddBracket(0, 23_850, .10)
 	t.AddBracket(23_850, 96_950, .12)
 	t.AddBracket(96_950, 206_700, .22)
@@ -55,7 +54,7 @@ var FicaRegistry = map[uint16]FicaTaxSystem{
 
 func buildFica2025() FicaTaxSystem {
 	return FicaTaxSystem{
-		SocialSecurityTax: calculators.NewCappedTax(.062, 176_100),
-		MedicareTax:       calculators.NewFlatTax(.0145),
+		SocialSecurityTax: NewCappedTax(.062, 176_100),
+		MedicareTax:       NewFlatTax(.0145),
 	}
 }

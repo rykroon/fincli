@@ -50,7 +50,7 @@ func runTaxCmd(cmd *cobra.Command, args []string) error {
 	prt.Printf("  Standard Deduction: $%.2v\n", usTaxResult.StandardDeduction)
 	prt.Printf("  Taxable Income: $%.2v\n", usTaxResult.TaxableIncome)
 	prt.Printf("  Taxes Due: $%.2v\n", usTaxResult.TaxesDue)
-	// prt.Printf("  Marginal Tax Rate: %v%%\n", bracket.Rate.Mul(oneHundred))
+	prt.Printf("  Marginal Tax Rate: %v%%\n", usTaxResult.MarginalTaxRate.Mul(oneHundred))
 	prt.Printf("  Effective Tax Rate: %.2v%%\n", effectiveTaxRate.Mul(oneHundred))
 	prt.Println("")
 
