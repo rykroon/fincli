@@ -7,17 +7,10 @@ import (
 const maxIncome int = 1_000_000_000_000_000
 
 func buildUsTaxSystem2025() UsTaxSystem {
-	system := UsTaxSystem{
-		StandardDeductions: map[FilingStatus]decimal.Decimal{
-			Single:       decimal.NewFromInt(15_000),
-			MarriedJoint: decimal.NewFromInt(31_500),
-		},
-		Calculators: map[FilingStatus]ProgressiveTax{
-			Single:       buildUsSingle2025(),
-			MarriedJoint: buildUsMarriedJointly2025(),
-		},
-	}
-	return system
+	sys := NewUsTaxSystem()
+	sys.AddFilingStatus(Single, decimal.NewFromInt(15_000), buildUsSingle2025())
+	sys.AddFilingStatus(MarriedJoint, decimal.NewFromInt(31_500), buildUsMarriedJointly2025())
+	return sys
 }
 
 func buildUsSingle2025() ProgressiveTax {

@@ -4,9 +4,19 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+type usFilingConfig struct {
+	StandardDeduction decimal.Decimal
+	Calculator        ProgressiveTax
+}
+
 type UsTaxSystem struct {
-	StandardDeductions map[FilingStatus]decimal.Decimal
-	Calculators        map[FilingStatus]ProgressiveTax
+	FilingConfigs map[FilingStatus]usFilingConfig
+}
+
+func NewUsTaxSystem() UsTaxSystem {
+	return UsTaxSystem{
+		FilingConfigs: make(map[FilingStatus]usFilingConfig),
+	}
 }
 
 type UsTaxSystemResult struct {
@@ -17,27 +27,30 @@ type UsTaxSystemResult struct {
 	TaxesDue            decimal.Decimal
 }
 
-func (s UsTaxSystem) CalculateTax(p TaxPayer) UsTaxSystemResult {
+func (sys *UsTaxSystem) AddFilingStatus(status FilingStatus, standardDeduction decimal.Decimal, calc ProgressiveTax) {
+	sys.FilingConfigs[status] = usFilingConfig{
+		StandardDeduction: standardDeduction,
+		Calculator:        calc,
+	}
+}
+
+func (sys UsTaxSystem) CalculateTax(p TaxPayer) UsTaxSystemResult {
 	adjustedGrossIncome := p.Income
 	for _, adj := range p.Adjustments {
 		adjustedGrossIncome = adj.Adjust(adjustedGrossIncome)
 	}
 
-	standardDeduction, ok := s.StandardDeductions[p.FilingStatus]
-	if !ok {
-		panic("Filing status not found.")
-	}
-	taxableIncome := adjustedGrossIncome.Sub(standardDeduction)
-
-	calc, ok := s.Calculators[p.FilingStatus]
+	config, ok := sys.FilingConfigs[p.FilingStatus]
 	if !ok {
 		panic("Filing status not found.")
 	}
 
-	marginalBracket := calc.GetMarginalBracket(taxableIncome)
-	taxesDue := calc.CalculateTax(taxableIncome)
+	taxableIncome := adjustedGrossIncome.Sub(config.StandardDeduction)
+
+	marginalBracket := config.Calculator.GetMarginalBracket(taxableIncome)
+	taxesDue := config.Calculator.CalculateTax(taxableIncome)
 	return UsTaxSystemResult{
-		StandardDeduction:   standardDeduction,
+		StandardDeduction:   config.StandardDeduction,
 		AdjustedGrossIncome: adjustedGrossIncome,
 		TaxableIncome:       taxableIncome,
 		MarginalTaxRate:     marginalBracket.Rate,

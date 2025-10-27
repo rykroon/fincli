@@ -36,9 +36,7 @@ type ProgressiveTax struct {
 }
 
 func NewProgressiveTax(brackets ...bracket) ProgressiveTax {
-	return ProgressiveTax{
-		Brackets: brackets,
-	}
+	return ProgressiveTax{Brackets: brackets}
 }
 
 func (t ProgressiveTax) GetMarginalBracket(income decimal.Decimal) bracket {
