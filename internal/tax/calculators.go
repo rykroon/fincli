@@ -10,8 +10,8 @@ type FlatTax struct {
 	Rate decimal.Decimal
 }
 
-func NewFlatTax[T Number](rate T) FlatTax {
-	return FlatTax{Rate: numToDecimal(rate)}
+func NewFlatTax(rate float64) FlatTax {
+	return FlatTax{Rate: decimal.NewFromFloat(rate)}
 }
 
 func (t FlatTax) CalculateTax(income decimal.Decimal) decimal.Decimal {
@@ -19,12 +19,12 @@ func (t FlatTax) CalculateTax(income decimal.Decimal) decimal.Decimal {
 }
 
 type CappedTax struct {
-	Rate  decimal.Decimal
 	Upper decimal.Decimal
+	Rate  decimal.Decimal
 }
 
-func NewCappedTax[T1 Number, T2 Number](rate T1, upper T2) CappedTax {
-	return CappedTax{numToDecimal(rate), numToDecimal(upper)}
+func NewCappedTax(upper uint64, rate float64) CappedTax {
+	return CappedTax{decimal.NewFromUint64(upper), decimal.NewFromFloat(rate)}
 }
 
 func (t CappedTax) CalculateTax(income decimal.Decimal) decimal.Decimal {
@@ -32,14 +32,14 @@ func (t CappedTax) CalculateTax(income decimal.Decimal) decimal.Decimal {
 }
 
 type ProgressiveTax struct {
-	Brackets []bracket
+	Brackets []Bracket
 }
 
-func NewProgressiveTax(brackets ...bracket) ProgressiveTax {
+func NewProgressiveTax(brackets ...Bracket) ProgressiveTax {
 	return ProgressiveTax{Brackets: brackets}
 }
 
-func (t ProgressiveTax) GetMarginalBracket(income decimal.Decimal) bracket {
+func (t ProgressiveTax) GetMarginalBracket(income decimal.Decimal) Bracket {
 	for _, bracket := range t.Brackets {
 		if bracket.Lower.LessThan(income) && income.LessThan(bracket.Upper) {
 			return bracket
@@ -56,7 +56,7 @@ func (c ProgressiveTax) CalculateTax(income decimal.Decimal) decimal.Decimal {
 			break
 		}
 
-		tax = tax.Add(b.calculateTax(income))
+		tax = tax.Add(b.CalculateTax(income))
 
 		if income.LessThan(b.Upper) {
 			break
@@ -65,26 +65,21 @@ func (c ProgressiveTax) CalculateTax(income decimal.Decimal) decimal.Decimal {
 	return tax
 }
 
-func (t *ProgressiveTax) AddBracket(b bracket) *ProgressiveTax {
-	t.Brackets = append(t.Brackets, b)
-	return t
-}
-
-type bracket struct {
+type Bracket struct {
 	Lower decimal.Decimal
 	Upper decimal.Decimal
 	Rate  decimal.Decimal
 }
 
-func newBracket[T1 Number, T2 Number, T3 Number](l T1, u T2, r T3) bracket {
-	return bracket{
-		Lower: numToDecimal(l),
-		Upper: numToDecimal(u),
-		Rate:  numToDecimal(r),
+func NewBracket(lower uint64, upper uint64, rate float64) Bracket {
+	return Bracket{
+		Lower: decimal.NewFromUint64(lower),
+		Upper: decimal.NewFromUint64(upper),
+		Rate:  decimal.NewFromFloat(rate),
 	}
 }
 
-func (b bracket) calculateTax(income decimal.Decimal) decimal.Decimal {
+func (b Bracket) CalculateTax(income decimal.Decimal) decimal.Decimal {
 	if income.LessThan(b.Lower) {
 		return decimal.Zero
 	}

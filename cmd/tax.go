@@ -10,7 +10,7 @@ import (
 
 var taxCmd = &cobra.Command{
 	Use:   "tax",
-	Short: "Calculate Federal Income Taxes",
+	Short: "Calculate Income Taxes",
 	RunE:  runTaxCmd,
 }
 
@@ -41,7 +41,6 @@ func runTaxCmd(cmd *cobra.Command, args []string) error {
 
 	usTaxResult := usTaxSystem.CalculateTax(taxPayer)
 	effectiveTaxRate := usTaxResult.TaxesDue.Div(tf.income)
-	// bracket := config.GetMarginalBracket(adjustedGrossIncome)
 
 	oneHundred := decimal.NewFromInt(100)
 

@@ -4,18 +4,15 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type usFilingConfig struct {
+type UsFilingConfig struct {
 	StandardDeduction decimal.Decimal
-	Calculator        ProgressiveTax
+	Schedule          ProgressiveTax
 }
 
-type UsTaxSystem struct {
-	FilingConfigs map[FilingStatus]usFilingConfig
-}
-
-func NewUsTaxSystem() UsTaxSystem {
-	return UsTaxSystem{
-		FilingConfigs: make(map[FilingStatus]usFilingConfig),
+func NewUsFilingConfig(standardDeduction int64, sched ProgressiveTax) UsFilingConfig {
+	return UsFilingConfig{
+		StandardDeduction: decimal.NewFromInt(standardDeduction),
+		Schedule:          sched,
 	}
 }
 
@@ -27,11 +24,19 @@ type UsTaxSystemResult struct {
 	TaxesDue            decimal.Decimal
 }
 
-func (sys *UsTaxSystem) AddFilingStatus(status FilingStatus, standardDeduction decimal.Decimal, calc ProgressiveTax) {
-	sys.FilingConfigs[status] = usFilingConfig{
-		StandardDeduction: standardDeduction,
-		Calculator:        calc,
+type UsTaxSystem struct {
+	FilingConfigs map[FilingStatus]UsFilingConfig
+}
+
+func NewUsTaxSystem() UsTaxSystem {
+	return UsTaxSystem{
+		FilingConfigs: make(map[FilingStatus]UsFilingConfig),
 	}
+}
+
+func (sys *UsTaxSystem) AddFilingStatus(status FilingStatus, config UsFilingConfig) *UsTaxSystem {
+	sys.FilingConfigs[status] = config
+	return sys
 }
 
 func (sys UsTaxSystem) CalculateTax(p TaxPayer) UsTaxSystemResult {
@@ -46,9 +51,9 @@ func (sys UsTaxSystem) CalculateTax(p TaxPayer) UsTaxSystemResult {
 	}
 
 	taxableIncome := adjustedGrossIncome.Sub(config.StandardDeduction)
+	marginalBracket := config.Schedule.GetMarginalBracket(taxableIncome)
+	taxesDue := config.Schedule.CalculateTax(taxableIncome)
 
-	marginalBracket := config.Calculator.GetMarginalBracket(taxableIncome)
-	taxesDue := config.Calculator.CalculateTax(taxableIncome)
 	return UsTaxSystemResult{
 		StandardDeduction:   config.StandardDeduction,
 		AdjustedGrossIncome: adjustedGrossIncome,
