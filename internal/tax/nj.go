@@ -3,7 +3,7 @@ package tax
 import "github.com/shopspring/decimal"
 
 type NjTaxSystem struct {
-	FilingConfigs map[FilingStatus]ProgressiveTax
+	FilingConfigs map[FilingStatus]ProgressiveTax `json:"filing_configs"`
 }
 
 func NewNjTaxSystem() NjTaxSystem {
