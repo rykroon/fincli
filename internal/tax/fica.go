@@ -5,8 +5,8 @@ import (
 )
 
 type FicaTaxSystem struct {
-	SocialSecurityTax CappedTax
-	MedicareTax       FlatTax
+	SocialSecurityTax CappedTax `json:"social_security_tax"`
+	MedicareTax       FlatTax   `json:"medicare_tax"`
 }
 
 type FicaTaxResult struct {

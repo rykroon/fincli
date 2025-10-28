@@ -7,7 +7,7 @@ type TaxCalculator interface {
 }
 
 type FlatTax struct {
-	Rate decimal.Decimal
+	Rate decimal.Decimal `json:"rate"`
 }
 
 func NewFlatTax(rate float64) FlatTax {
@@ -19,8 +19,8 @@ func (t FlatTax) CalculateTax(income decimal.Decimal) decimal.Decimal {
 }
 
 type CappedTax struct {
-	Upper decimal.Decimal
-	Rate  decimal.Decimal
+	Upper decimal.Decimal `json:"upper"`
+	Rate  decimal.Decimal `json:"rate"`
 }
 
 func NewCappedTax(upper uint64, rate float64) CappedTax {
@@ -66,12 +66,12 @@ func (c ProgressiveTax) CalculateTax(income decimal.Decimal) decimal.Decimal {
 }
 
 type Bracket struct {
-	Lower decimal.Decimal
-	Upper decimal.Decimal
-	Rate  decimal.Decimal
+	Lower decimal.Decimal `json:"lower"`
+	Upper decimal.Decimal `json:"upper"`
+	Rate  decimal.Decimal `json:"rate"`
 }
 
-func NewBracket(lower uint64, upper uint64, rate float64) Bracket {
+func NewBracket(lower, upper uint64, rate float64) Bracket {
 	return Bracket{
 		Lower: decimal.NewFromUint64(lower),
 		Upper: decimal.NewFromUint64(upper),

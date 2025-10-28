@@ -5,8 +5,8 @@ import (
 )
 
 type UsFilingConfig struct {
-	StandardDeduction decimal.Decimal
-	Schedule          ProgressiveTax
+	StandardDeduction decimal.Decimal `json:"standard_deduction"`
+	Schedule          ProgressiveTax  `json:"schedule"`
 }
 
 func NewUsFilingConfig(standardDeduction int64, sched ProgressiveTax) UsFilingConfig {
@@ -25,7 +25,7 @@ type UsTaxSystemResult struct {
 }
 
 type UsTaxSystem struct {
-	FilingConfigs map[FilingStatus]UsFilingConfig
+	FilingConfigs map[FilingStatus]UsFilingConfig `json:"filing_configs"`
 }
 
 func NewUsTaxSystem() UsTaxSystem {
