@@ -9,26 +9,28 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "fin",
-	Short: "Finance CLI: Do Finance.",
-	Long:  ``,
-}
+var sep rune
 
 func Execute() {
-	if err := rootCmd.Execute(); err != nil {
+	cmd := NewRootCmd()
+	if err := cmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 }
 
-var sep rune
+func NewRootCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "fin",
+		Short: "Finance CLI: Do Finance.",
+		Long:  ``,
+	}
 
-func init() {
-	rootCmd.AddCommand(mortgage.MortgageCmd)
-	rootCmd.AddCommand(homeCmd)
-	rootCmd.AddCommand(fireCmd)
-	rootCmd.AddCommand(taxCmd)
+	cmd.AddCommand(mortgage.MortgageCmd)
+	cmd.AddCommand(homeCmd)
+	cmd.AddCommand(fireCmd)
+	cmd.AddCommand(taxCmd)
 
-	rootCmd.PersistentFlags().Var(flagx.NewRuneVal(&sep, []rune{',', '_'}), "sep", "thousands separator")
+	cmd.PersistentFlags().Var(flagx.NewRuneVal(&sep, []rune{',', '_'}), "sep", "thousands separator")
+	return cmd
 }
