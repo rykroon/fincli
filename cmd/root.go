@@ -28,7 +28,7 @@ func NewRootCmd() *cobra.Command {
 
 	cmd.AddCommand(mortgage.MortgageCmd)
 	cmd.AddCommand(homeCmd)
-	cmd.AddCommand(fireCmd)
+	cmd.AddCommand(NewFireCmd())
 	cmd.AddCommand(taxCmd)
 
 	cmd.PersistentFlags().Var(flagx.NewRuneVal(&sep, []rune{',', '_'}), "sep", "thousands separator")

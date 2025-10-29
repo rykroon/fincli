@@ -7,33 +7,32 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var fireCmd = &cobra.Command{
-	Use:   "fire",
-	Short: "Calculate your FIRE number.",
-	Run:   runFireCmd,
+func NewFireCmd() *cobra.Command {
+	var annualExpenses decimal.Decimal
+	safeWithdrawlRate := decimal.NewFromFloat(.04)
+
+	cmd := &cobra.Command{
+		Use:   "fire",
+		Short: "Calculate your FIRE number.",
+		Run: func(cmd *cobra.Command, args []string) {
+			runFireCmd(annualExpenses, safeWithdrawlRate)
+		},
+	}
+
+	cmd.Flags().VarP(flagx.NewDecVal(&annualExpenses), "expenses", "e", "Annual expenses.")
+	cmd.Flags().Var(flagx.NewPercentVal(&safeWithdrawlRate), "swr", "Safe withdrawl rate.")
+
+	cmd.MarkFlagRequired("expenses")
+
+	cmd.Flags().SortFlags = false
+	cmd.Flags().PrintDefaults()
+
+	return cmd
 }
 
-type fireFlags struct {
-	AnnualExpenses    decimal.Decimal
-	SafeWithdrawlRate decimal.Decimal
-}
-
-var ff fireFlags
-
-func runFireCmd(cmd *cobra.Command, args []string) {
+func runFireCmd(annualExpenses, swr decimal.Decimal) {
 	prt := fmtx.NewDecimalPrinter(sep)
-	fireNumber := ff.AnnualExpenses.Div(ff.SafeWithdrawlRate)
+	fireNumber := annualExpenses.Div(swr)
 	prt.Printf("FIRE Number: $%.2v\n", fireNumber)
-	prt.Printf("Safe Withdrawl Rate: %.2v%%\n", ff.SafeWithdrawlRate.Mul(decimal.NewFromInt(100)))
-}
-
-func init() {
-	fireCmd.Flags().VarP(flagx.NewDecVal(&ff.AnnualExpenses), "expenses", "e", "Annual expenses.")
-	ff.SafeWithdrawlRate = decimal.NewFromFloat(.04)
-	fireCmd.Flags().Var(flagx.NewPercentVal(&ff.SafeWithdrawlRate), "swr", "Safe withdrawl rate.")
-
-	fireCmd.MarkFlagRequired("expenses")
-
-	fireCmd.Flags().SortFlags = false
-	fireCmd.Flags().PrintDefaults()
+	prt.Printf("Safe Withdrawl Rate: %.2v%%\n", swr.Mul(decimal.NewFromInt(100)))
 }
