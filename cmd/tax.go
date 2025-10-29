@@ -25,14 +25,13 @@ func NewTaxCmd() *cobra.Command {
 			)
 			runTaxCmd(year, taxPayer)
 			return nil
-
 		},
 	}
 
 	cmd.Flags().VarP(flagx.NewDecVal(&income), "income", "i", "Your gross income")
 	cmd.Flags().StringVarP(&filingStatus, "filing-status", "f", "single", "Your filing status")
 	cmd.Flags().Uint16VarP(&year, "year", "y", 2025, "Tax year")
-	cmd.Flags().Var(flagx.NewDecVal(&adjustments), "adjustments", "adjustments (ex: Reitrement Contributions, Student Loan Interest)")
+	cmd.Flags().Var(flagx.NewDecVal(&adjustments), "adjustments", "adjustments (ex: Retirement Contributions, Student Loan Interest)")
 	cmd.MarkFlagRequired("income")
 	return cmd
 }
