@@ -8,39 +8,47 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var taxCmd = &cobra.Command{
-	Use:   "tax",
-	Short: "Calculate Income Taxes",
-	RunE:  runTaxCmd,
+func NewTaxCmd() *cobra.Command {
+	var income decimal.Decimal
+	var filingStatus string
+	var year uint16
+	var adjustments decimal.Decimal
+
+	cmd := &cobra.Command{
+		Use:   "tax",
+		Short: "Calculate Income Taxes",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			taxPayer := tax.NewTaxPayer(
+				income,
+				tax.FilingStatus(filingStatus),
+				tax.Adjustment{Label: "Adjustments", Amount: adjustments},
+			)
+			runTaxCmd(year, taxPayer)
+			return nil
+
+		},
+	}
+
+	cmd.Flags().VarP(flagx.NewDecVal(&income), "income", "i", "Your gross income")
+	cmd.Flags().StringVarP(&filingStatus, "filing-status", "f", "single", "Your filing status")
+	cmd.Flags().Uint16VarP(&year, "year", "y", 2025, "Tax year")
+	cmd.Flags().Var(flagx.NewDecVal(&adjustments), "adjustments", "adjustments (ex: Reitrement Contributions, Student Loan Interest)")
+	cmd.MarkFlagRequired("income")
+	return cmd
 }
 
-type taxFlags struct {
-	income       decimal.Decimal
-	filingStatus string
-	year         uint16
-	adjustments  decimal.Decimal
-}
-
-var tf taxFlags
-
-func runTaxCmd(cmd *cobra.Command, args []string) error {
+func runTaxCmd(year uint16, taxPayer tax.TaxPayer) error {
 	prt := fmtx.NewDecimalPrinter(sep)
-	prt.Printf("Gross Income: $%.2v\n", tf.income)
+	prt.Printf("Gross Income: $%.2v\n", taxPayer.Income)
 	prt.Println("")
 
-	usTaxSystem, ok := tax.UsFederalRegistry[tf.year]
+	usTaxSystem, ok := tax.UsFederalRegistry[year]
 	if !ok {
 		panic("tax system not found")
 	}
 
-	taxPayer := tax.NewTaxPayer(
-		tf.income,
-		tax.FilingStatus(tf.filingStatus),
-		tax.Adjustment{Label: "Adjustments", Amount: tf.adjustments},
-	)
-
 	usTaxResult := usTaxSystem.CalculateTax(taxPayer)
-	effectiveTaxRate := usTaxResult.TaxesDue.Div(tf.income)
+	effectiveTaxRate := usTaxResult.TaxesDue.Div(taxPayer.Income)
 
 	oneHundred := decimal.NewFromInt(100)
 
@@ -54,7 +62,7 @@ func runTaxCmd(cmd *cobra.Command, args []string) error {
 	prt.Println("")
 
 	// FICA Tax
-	ficaTaxSystem, ok := tax.FicaRegistry[tf.year]
+	ficaTaxSystem, ok := tax.FicaRegistry[year]
 	if !ok {
 		panic("FICA tax system not found")
 	}
@@ -74,12 +82,4 @@ func runTaxCmd(cmd *cobra.Command, args []string) error {
 	)
 
 	return nil
-}
-
-func init() {
-	taxCmd.Flags().VarP(flagx.NewDecVal(&tf.income), "income", "i", "Your gross income")
-	taxCmd.Flags().StringVarP(&tf.filingStatus, "filing-status", "f", "single", "Your filing status")
-	taxCmd.Flags().Uint16VarP(&tf.year, "year", "y", 2025, "Tax year")
-	taxCmd.Flags().Var(flagx.NewDecVal(&tf.adjustments), "adjustments", "adjustments (ex: Reitrement Contributions, Student Loan Interest)")
-	taxCmd.MarkFlagRequired("income")
 }
