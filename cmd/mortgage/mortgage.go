@@ -11,8 +11,8 @@ func NewMortgageCmd() *cobra.Command {
 		Short: "Mortgage calculators",
 	}
 
-	cmd.AddCommand(monthlyCmd)
-	cmd.AddCommand(amortizeCmd)
+	cmd.AddCommand(NewMontlyCmd())
+	cmd.AddCommand(NewAmortizeCmd())
 	return cmd
 }
 
