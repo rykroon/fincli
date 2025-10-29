@@ -5,14 +5,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var MortgageCmd = &cobra.Command{
-	Use:   "mortgage",
-	Short: "Mortgage calculators",
-}
+func NewMortgageCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "mortgage",
+		Short: "Mortgage calculators",
+	}
 
-func init() {
-	MortgageCmd.AddCommand(monthlyCmd)
-	MortgageCmd.AddCommand(amortizeCmd)
+	cmd.AddCommand(monthlyCmd)
+	cmd.AddCommand(amortizeCmd)
+	return cmd
 }
 
 func getSep(cmd *cobra.Command) rune {

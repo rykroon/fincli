@@ -26,7 +26,7 @@ func NewRootCmd() *cobra.Command {
 		Long:  ``,
 	}
 
-	cmd.AddCommand(mortgage.MortgageCmd)
+	cmd.AddCommand(mortgage.NewMortgageCmd())
 	cmd.AddCommand(homeCmd)
 	cmd.AddCommand(NewFireCmd())
 	cmd.AddCommand(NewTaxCmd())
