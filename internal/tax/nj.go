@@ -6,14 +6,6 @@ type NjTaxSystem struct {
 	FilingConfigs map[FilingStatus]ProgressiveTax `json:"filing_configs"`
 }
 
-func NewNjTaxSystem() NjTaxSystem {
-	return NjTaxSystem{FilingConfigs: make(map[FilingStatus]ProgressiveTax)}
-}
-
-func (sys *NjTaxSystem) AddFilingConfig(status FilingStatus, tax ProgressiveTax) {
-	sys.FilingConfigs[status] = tax
-}
-
 type NjTaxResult struct {
 	MarginalTaxRate decimal.Decimal
 	TaxesDue        decimal.Decimal

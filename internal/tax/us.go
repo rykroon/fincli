@@ -9,13 +9,6 @@ type UsFilingConfig struct {
 	Schedule          ProgressiveTax  `json:"schedule"`
 }
 
-func NewUsFilingConfig(standardDeduction int64, sched ProgressiveTax) UsFilingConfig {
-	return UsFilingConfig{
-		StandardDeduction: decimal.NewFromInt(standardDeduction),
-		Schedule:          sched,
-	}
-}
-
 type UsTaxSystemResult struct {
 	StandardDeduction   decimal.Decimal
 	AdjustedGrossIncome decimal.Decimal
@@ -26,17 +19,6 @@ type UsTaxSystemResult struct {
 
 type UsTaxSystem struct {
 	FilingConfigs map[FilingStatus]UsFilingConfig `json:"filing_configs"`
-}
-
-func NewUsTaxSystem() UsTaxSystem {
-	return UsTaxSystem{
-		FilingConfigs: make(map[FilingStatus]UsFilingConfig),
-	}
-}
-
-func (sys *UsTaxSystem) AddFilingStatus(status FilingStatus, config UsFilingConfig) *UsTaxSystem {
-	sys.FilingConfigs[status] = config
-	return sys
 }
 
 func (sys UsTaxSystem) CalculateTax(p TaxPayer) UsTaxSystemResult {
