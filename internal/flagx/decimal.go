@@ -37,3 +37,13 @@ func DecimalVarP(f *pflag.FlagSet, p *decimal.Decimal, name, shorthand string, v
 func DecimalVar(f *pflag.FlagSet, p *decimal.Decimal, name string, value decimal.Decimal, usage string) {
 	DecimalVarP(f, p, name, "", value, usage)
 }
+
+func DecimalP(f *pflag.FlagSet, name, shorthand string, value decimal.Decimal, usage string) {
+	p := new(decimal.Decimal)
+	DecimalVarP(f, p, name, shorthand, value, usage)
+}
+
+func Decimal(f *pflag.FlagSet, name string, value decimal.Decimal, usage string) {
+	p := new(decimal.Decimal)
+	DecimalVarP(f, p, name, "", value, usage)
+}
