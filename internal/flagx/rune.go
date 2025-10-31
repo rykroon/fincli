@@ -2,43 +2,59 @@ package flagx
 
 import (
 	"fmt"
-	"slices"
+
+	"github.com/spf13/pflag"
 )
 
-type RuneVal struct {
-	ptr     *rune
-	allowed []rune
+type RuneValue rune
+
+func newRuneValue(val rune, p *rune) *RuneValue {
+	*p = val
+	return (*RuneValue)(p)
 }
 
-func NewRuneVal(r *rune, allowed []rune) *RuneVal {
-	return &RuneVal{r, allowed}
-}
-
-func (rv RuneVal) GetRune() rune {
-	if rv.ptr == nil {
-		return 0
-	}
-	return *rv.ptr
-}
-
-func (rv RuneVal) String() string {
-	return string(rv.GetRune())
-}
-
-func (rv *RuneVal) Set(s string) error {
+func (r *RuneValue) Set(s string) error {
 	if len(s) != 1 {
 		return fmt.Errorf("must be a single character")
 	}
-	r := rune(s[0])
-
-	if slices.Contains(rv.allowed, r) {
-		*rv.ptr = r
-		return nil
-	}
-
-	return fmt.Errorf("invalid separator: must be one of %q", string(rv.allowed))
+	*r = RuneValue(s[0])
+	return nil
 }
 
-func (rv RuneVal) Type() string {
-	return "rune"
+func (r RuneValue) String() string {
+	return string(r)
+}
+
+func (r RuneValue) Type() string { return "rune" }
+
+func RuneVarP(f *pflag.FlagSet, p *rune, name, shorthand string, value rune, usage string) {
+	f.VarP(newRuneValue(value, p), name, shorthand, usage)
+}
+
+func RuneVar(f *pflag.FlagSet, p *rune, name string, value rune, usage string) {
+	RuneVarP(f, p, name, "", value, usage)
+}
+
+func Rune(f *pflag.FlagSet, name string, value rune, usage string) *rune {
+	p := new(rune)
+	RuneVar(f, p, name, value, usage)
+	return p
+}
+
+func RuneP(f *pflag.FlagSet, name, shorthand string, value rune, usage string) *rune {
+	p := new(rune)
+	RuneVarP(f, p, name, shorthand, value, usage)
+	return p
+}
+
+func GetRune(f *pflag.FlagSet, name string) (rune, error) {
+	flag := f.Lookup("sep")
+	if flag == nil {
+		return 0, fmt.Errorf("flag '%s' not found", name)
+	}
+	value, ok := flag.Value.(*RuneValue)
+	if !ok {
+		return 0, fmt.Errorf("flag '%s' not a rune", name)
+	}
+	return rune(*value), nil
 }

@@ -18,7 +18,7 @@ func NewTaxCmd() *cobra.Command {
 		Use:   "tax",
 		Short: "Calculate Income Taxes",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			sep := getSep(cmd)
+			sep, _ := flagx.GetRune(cmd.Flags(), "sep")
 			prt := fmtx.NewDecimalPrinter(sep)
 			taxPayer := tax.NewTaxPayer(
 				income,

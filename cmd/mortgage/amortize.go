@@ -18,7 +18,7 @@ func NewAmortizeCmd() *cobra.Command {
 		Use:   "amortize",
 		Short: "Print an Amortization Schedule",
 		Run: func(cmd *cobra.Command, args []string) {
-			sep := getSep(cmd)
+			sep, _ := flagx.GetRune(cmd.PersistentFlags(), "sep")
 			prt := fmtx.NewDecimalPrinter(sep)
 			runAmortizeCmd(af, prt)
 		},

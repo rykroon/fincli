@@ -22,6 +22,16 @@ func NewRootCmd() *cobra.Command {
 		Use:   "fin",
 		Short: "Finance CLI: Do Finance.",
 		Long:  ``,
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+			sep, err := flagx.GetRune(cmd.Flags(), "sep")
+			if err != nil {
+				return err
+			}
+			if sep != 0 && sep != ',' && sep != '_' {
+				return fmt.Errorf("invalid value '%c' for sep, must be ',' or '_'", sep)
+			}
+			return nil
+		},
 	}
 
 	cmd.AddCommand(mortgage.NewMortgageCmd())
@@ -29,20 +39,6 @@ func NewRootCmd() *cobra.Command {
 	cmd.AddCommand(NewFireCmd())
 	cmd.AddCommand(NewTaxCmd())
 
-	var sep rune
-	cmd.PersistentFlags().Var(flagx.NewRuneVal(&sep, []rune{',', '_'}), "sep", "thousands separator")
+	flagx.Rune(cmd.PersistentFlags(), "sep", 0, "thousands separator")
 	return cmd
-}
-
-func getSep(cmd *cobra.Command) rune {
-	flagPtr := cmd.Flags().Lookup("sep")
-	if flagPtr == nil {
-		return 0
-	}
-	runeVal, ok := flagPtr.Value.(*flagx.RuneVal)
-	if !ok {
-		return 0
-	}
-
-	return runeVal.GetRune()
 }

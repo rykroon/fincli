@@ -39,7 +39,7 @@ func NewHomeCmd() *cobra.Command {
 		Use:   "home",
 		Short: "Calculate the costs of purchasing a home.",
 		Run: func(cmd *cobra.Command, args []string) {
-			sep := getSep(cmd)
+			sep, _ := flagx.GetRune(cmd.PersistentFlags(), "sep")
 			prt := fmtx.NewDecimalPrinter(sep)
 			runHouseCmd(prt, hf)
 		},
