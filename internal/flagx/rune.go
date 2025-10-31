@@ -6,26 +6,26 @@ import (
 	"github.com/spf13/pflag"
 )
 
-type RuneValue rune
+type runeValue rune
 
-func newRuneValue(val rune, p *rune) *RuneValue {
+func newRuneValue(val rune, p *rune) *runeValue {
 	*p = val
-	return (*RuneValue)(p)
+	return (*runeValue)(p)
 }
 
-func (r *RuneValue) Set(s string) error {
+func (r *runeValue) Set(s string) error {
 	if len(s) != 1 {
 		return fmt.Errorf("must be a single character")
 	}
-	*r = RuneValue(s[0])
+	*r = runeValue(s[0])
 	return nil
 }
 
-func (r RuneValue) String() string {
+func (r runeValue) String() string {
 	return string(r)
 }
 
-func (r RuneValue) Type() string { return "rune" }
+func (r runeValue) Type() string { return "rune" }
 
 func RuneVarP(f *pflag.FlagSet, p *rune, name, shorthand string, value rune, usage string) {
 	f.VarP(newRuneValue(value, p), name, shorthand, usage)
@@ -52,7 +52,7 @@ func GetRune(f *pflag.FlagSet, name string) (rune, error) {
 	if flag == nil {
 		return 0, fmt.Errorf("flag '%s' not found", name)
 	}
-	value, ok := flag.Value.(*RuneValue)
+	value, ok := flag.Value.(*runeValue)
 	if !ok {
 		return 0, fmt.Errorf("flag '%s' not a rune", name)
 	}

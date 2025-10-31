@@ -7,26 +7,26 @@ import (
 	"github.com/spf13/pflag"
 )
 
-type DecimalValue decimal.Decimal
+type decimalValue decimal.Decimal
 
-func newDecimalValue(val decimal.Decimal, p *decimal.Decimal) *DecimalValue {
+func newDecimalValue(val decimal.Decimal, p *decimal.Decimal) *decimalValue {
 	*p = val
-	return (*DecimalValue)(p)
+	return (*decimalValue)(p)
 }
 
-func (d *DecimalValue) Set(s string) error {
+func (d *decimalValue) Set(s string) error {
 	s = strings.ReplaceAll(s, "_", "")
 	v, err := decimal.NewFromString(s)
 	if err != nil {
 		return err
 	}
-	*d = DecimalValue(v)
+	*d = decimalValue(v)
 	return nil
 }
 
-func (d DecimalValue) Type() string { return "decimal" }
+func (d decimalValue) Type() string { return "decimal" }
 
-func (d DecimalValue) String() string {
+func (d decimalValue) String() string {
 	return decimal.Decimal(d).String()
 }
 
