@@ -18,12 +18,14 @@ func NewTaxCmd() *cobra.Command {
 		Use:   "tax",
 		Short: "Calculate Income Taxes",
 		RunE: func(cmd *cobra.Command, args []string) error {
+			sep := getSep(cmd)
+			prt := fmtx.NewDecimalPrinter(sep)
 			taxPayer := tax.NewTaxPayer(
 				income,
 				tax.FilingStatus(filingStatus),
 				tax.Adjustment{Label: "Adjustments", Amount: adjustments},
 			)
-			runTaxCmd(year, taxPayer)
+			runTaxCmd(prt, year, taxPayer)
 			return nil
 		},
 	}
@@ -36,8 +38,7 @@ func NewTaxCmd() *cobra.Command {
 	return cmd
 }
 
-func runTaxCmd(year uint16, taxPayer tax.TaxPayer) error {
-	prt := fmtx.NewDecimalPrinter(sep)
+func runTaxCmd(prt fmtx.DecimalPrinter, year uint16, taxPayer tax.TaxPayer) error {
 	prt.Printf("Gross Income: $%.2v\n", taxPayer.Income)
 	prt.Println("")
 

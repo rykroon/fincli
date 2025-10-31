@@ -9,8 +9,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var sep rune
-
 func Execute() {
 	cmd := NewRootCmd()
 	if err := cmd.Execute(); err != nil {
@@ -31,6 +29,20 @@ func NewRootCmd() *cobra.Command {
 	cmd.AddCommand(NewFireCmd())
 	cmd.AddCommand(NewTaxCmd())
 
+	var sep rune
 	cmd.PersistentFlags().Var(flagx.NewRuneVal(&sep, []rune{',', '_'}), "sep", "thousands separator")
 	return cmd
+}
+
+func getSep(cmd *cobra.Command) rune {
+	flagPtr := cmd.Flags().Lookup("sep")
+	if flagPtr == nil {
+		return 0
+	}
+	runeVal, ok := flagPtr.Value.(*flagx.RuneVal)
+	if !ok {
+		return 0
+	}
+
+	return runeVal.GetRune()
 }

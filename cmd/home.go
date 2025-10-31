@@ -15,7 +15,9 @@ func NewHomeCmd() *cobra.Command {
 		Use:   "home",
 		Short: "Calculate the costs of purchasing a home.",
 		Run: func(cmd *cobra.Command, args []string) {
-			runHouseCmd(hf)
+			sep := getSep(cmd)
+			prt := fmtx.NewDecimalPrinter(sep)
+			runHouseCmd(prt, hf)
 		},
 	}
 
@@ -68,9 +70,8 @@ func (hf homeFlags) ClosingCosts() decimal.Decimal {
 	return hf.Price.Mul(hf.ClosingPercent)
 }
 
-func runHouseCmd(hf homeFlags) {
+func runHouseCmd(prt fmtx.DecimalPrinter, hf homeFlags) {
 	oneHundred := decimal.NewFromInt(100)
-	prt := fmtx.NewDecimalPrinter(sep)
 	// Print Summary
 	prt.Printf("Home Price: $%.2v\n", hf.Price)
 	prt.Printf("Down Payment (%v%%): $%.2v\n", hf.DownPaymentPercent.Mul(oneHundred), hf.DownPayment())
@@ -103,7 +104,7 @@ func runHouseCmd(hf homeFlags) {
 	}
 
 	if monthlyPMI.GreaterThan(decimal.Zero) {
-		prt.Printf("PMI: $%.2v\n", monthlyPMI, sep)
+		prt.Printf("PMI: $%.2v\n", monthlyPMI)
 	}
 
 	totalMonthlyCost := decimal.Sum(
