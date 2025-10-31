@@ -14,20 +14,22 @@ func NewTaxCmd() *cobra.Command {
 	var year uint16
 	var adjustments decimal.Decimal
 
+	runE := func(cmd *cobra.Command, args []string) error {
+		sep, _ := flagx.GetRune(cmd.Flags(), "sep")
+		prt := fmtx.NewDecimalPrinter(sep)
+		taxPayer := tax.NewTaxPayer(
+			income,
+			tax.FilingStatus(filingStatus),
+			tax.Adjustment{Label: "Adjustments", Amount: adjustments},
+		)
+		runTaxCmd(prt, year, taxPayer)
+		return nil
+	}
+
 	cmd := &cobra.Command{
 		Use:   "tax",
 		Short: "Calculate Income Taxes",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			sep, _ := flagx.GetRune(cmd.Flags(), "sep")
-			prt := fmtx.NewDecimalPrinter(sep)
-			taxPayer := tax.NewTaxPayer(
-				income,
-				tax.FilingStatus(filingStatus),
-				tax.Adjustment{Label: "Adjustments", Amount: adjustments},
-			)
-			runTaxCmd(prt, year, taxPayer)
-			return nil
-		},
+		RunE:  runE,
 	}
 	flagx.DecimalVarP(cmd.Flags(), &income, "income", "i", decimal.Zero, "Your gross income")
 	cmd.Flags().StringVarP(&filingStatus, "filing-status", "f", "single", "Your filing status")

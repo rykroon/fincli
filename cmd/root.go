@@ -18,27 +18,28 @@ func Execute() {
 }
 
 func NewRootCmd() *cobra.Command {
+	persistentPreRunE := func(cmd *cobra.Command, args []string) error {
+		sep, err := flagx.GetRune(cmd.Flags(), "sep")
+		if err != nil {
+			return err
+		}
+		if sep != 0 && sep != ',' && sep != '_' {
+			return fmt.Errorf("invalid value '%c' for sep, must be ',' or '_'", sep)
+		}
+		return nil
+	}
+
 	cmd := &cobra.Command{
-		Use:   "fin",
-		Short: "Finance CLI: Do Finance.",
-		Long:  ``,
-		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			sep, err := flagx.GetRune(cmd.Flags(), "sep")
-			if err != nil {
-				return err
-			}
-			if sep != 0 && sep != ',' && sep != '_' {
-				return fmt.Errorf("invalid value '%c' for sep, must be ',' or '_'", sep)
-			}
-			return nil
-		},
+		Use:               "fin",
+		Short:             "Finance CLI: Do Finance.",
+		Long:              ``,
+		PersistentPreRunE: persistentPreRunE,
 	}
 
 	cmd.AddCommand(mortgage.NewMortgageCmd())
 	cmd.AddCommand(NewHomeCmd())
 	cmd.AddCommand(NewFireCmd())
 	cmd.AddCommand(NewTaxCmd())
-
 	flagx.Rune(cmd.PersistentFlags(), "sep", 0, "thousands separator")
 	return cmd
 }
