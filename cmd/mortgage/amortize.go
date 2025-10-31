@@ -24,9 +24,8 @@ func NewAmortizeCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().VarP(
-		flagx.NewDecVal(&af.Principal), "principal", "p", "The principal (loan amount)",
-	)
+	flagx.DecimalVarP(cmd.Flags(), &af.Principal, "principal", "p", decimal.Zero, "The principal (loan amount)")
+
 	cmd.Flags().VarP(flagx.NewPercentVal(&af.Rate), "rate", "r", "Annual interest rate")
 	cmd.Flags().Int64VarP(&af.Years, "years", "y", 30, "Loan term in years")
 
@@ -34,8 +33,8 @@ func NewAmortizeCmd() *cobra.Command {
 	cmd.MarkFlagRequired("rate")
 
 	// optional flags
-	cmd.Flags().Var(flagx.NewDecVal(&af.ExtraMonthlyPayment), "extra-monthly", "Extra monthly payment")
-	cmd.Flags().Var(flagx.NewDecVal(&af.ExtraAnnualPayment), "extra-annual", "Extra annual payment")
+	flagx.DecimalVar(cmd.Flags(), &af.ExtraMonthlyPayment, "extra-monthly", decimal.Zero, "Extra monthly payment")
+	flagx.DecimalVar(cmd.Flags(), &af.ExtraAnnualPayment, "extra-annual", decimal.Zero, "Extra annual payment")
 
 	cmd.Flags().BoolVar(&af.MonthlySchedule, "monthly-schedule", false, "Print the monthly amortization schedule")
 	cmd.Flags().BoolVar(&af.AnnualSchedule, "annual-schedule", false, "Print the annual amortization schedule")

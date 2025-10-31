@@ -21,7 +21,7 @@ func NewFireCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().VarP(flagx.NewDecVal(&annualExpenses), "expenses", "e", "Annual expenses.")
+	flagx.DecimalVarP(cmd.Flags(), &annualExpenses, "expenses", "e", decimal.Zero, "Annual expenses.")
 	cmd.Flags().Var(flagx.NewPercentVal(&safeWithdrawlRate), "swr", "Safe withdrawl rate.")
 
 	cmd.MarkFlagRequired("expenses")

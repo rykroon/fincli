@@ -24,9 +24,7 @@ func NewMontlyCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().VarP(
-		flagx.NewDecVal(&principal), "principal", "p", "Principal (loan amount)",
-	)
+	flagx.DecimalVarP(cmd.Flags(), &principal, "principal", "p", decimal.Zero, "Principal (loan amount)")
 	cmd.Flags().VarP(flagx.NewPercentVal(&rate), "rate", "r", "Annual interest rate.")
 	cmd.Flags().Int64VarP(&years, "years", "y", 30, "Loan term in years")
 

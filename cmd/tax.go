@@ -29,11 +29,10 @@ func NewTaxCmd() *cobra.Command {
 			return nil
 		},
 	}
-
-	cmd.Flags().VarP(flagx.NewDecVal(&income), "income", "i", "Your gross income")
+	flagx.DecimalVarP(cmd.Flags(), &income, "income", "i", decimal.Zero, "Your gross income")
 	cmd.Flags().StringVarP(&filingStatus, "filing-status", "f", "single", "Your filing status")
 	cmd.Flags().Uint16VarP(&year, "year", "y", 2025, "Tax year")
-	cmd.Flags().Var(flagx.NewDecVal(&adjustments), "adjustments", "adjustments (ex: Retirement Contributions, Student Loan Interest)")
+	flagx.DecimalVar(cmd.Flags(), &adjustments, "adjustments", decimal.Zero, "adjustments (ex: Retirement Contributions, Student Loan Interest)")
 	cmd.MarkFlagRequired("income")
 	return cmd
 }

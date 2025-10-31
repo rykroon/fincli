@@ -8,44 +8,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewHomeCmd() *cobra.Command {
-	var hf homeFlags
-
-	cmd := &cobra.Command{
-		Use:   "home",
-		Short: "Calculate the costs of purchasing a home.",
-		Run: func(cmd *cobra.Command, args []string) {
-			sep := getSep(cmd)
-			prt := fmtx.NewDecimalPrinter(sep)
-			runHouseCmd(prt, hf)
-		},
-	}
-
-	cmd.Flags().VarP(flagx.NewDecVal(&hf.Price), "price", "p", "Home price")
-
-	hf.DownPaymentPercent = decimal.NewFromFloat(.2)
-	cmd.Flags().VarP(flagx.NewPercentVal(&hf.DownPaymentPercent), "down", "d", "Down payment percent")
-
-	cmd.Flags().VarP(flagx.NewPercentVal(&hf.Rate), "rate", "r", "Mortgage interest rate")
-
-	cmd.Flags().Int64VarP(&hf.Years, "years", "y", 30, "Mortgage term in years")
-
-	hf.ClosingPercent = decimal.NewFromFloat(.03)
-	cmd.Flags().Var(flagx.NewPercentVal(&hf.ClosingPercent), "closing-percent", "Estimated closing costs as a percent")
-	cmd.Flags().VarP(flagx.NewDecVal(&hf.AnnualTax), "taxes", "t", "Annual property taxes")
-	cmd.Flags().VarP(flagx.NewDecVal(&hf.AnnualInsurance), "insurance", "i", "Annual homeowners insurance")
-	cmd.Flags().Var(flagx.NewPercentVal(&hf.PmiRate), "pmi", "PMI rate")
-	cmd.Flags().Var(flagx.NewDecVal(&hf.MonthlyHoa), "hoa", "Monthly HOA fee")
-
-	cmd.MarkFlagRequired("price")
-	cmd.MarkFlagRequired("rate")
-
-	cmd.Flags().SortFlags = false
-	cmd.Flags().PrintDefaults()
-
-	return cmd
-}
-
 type homeFlags struct {
 	Price              decimal.Decimal
 	DownPaymentPercent decimal.Decimal
@@ -68,6 +30,44 @@ func (hf homeFlags) LoanAmount() decimal.Decimal {
 
 func (hf homeFlags) ClosingCosts() decimal.Decimal {
 	return hf.Price.Mul(hf.ClosingPercent)
+}
+
+func NewHomeCmd() *cobra.Command {
+	var hf homeFlags
+
+	cmd := &cobra.Command{
+		Use:   "home",
+		Short: "Calculate the costs of purchasing a home.",
+		Run: func(cmd *cobra.Command, args []string) {
+			sep := getSep(cmd)
+			prt := fmtx.NewDecimalPrinter(sep)
+			runHouseCmd(prt, hf)
+		},
+	}
+
+	flagx.DecimalVarP(cmd.Flags(), &hf.Price, "price", "p", decimal.Zero, "Home price")
+
+	hf.DownPaymentPercent = decimal.NewFromFloat(.2)
+	cmd.Flags().VarP(flagx.NewPercentVal(&hf.DownPaymentPercent), "down", "d", "Down payment percent")
+
+	cmd.Flags().VarP(flagx.NewPercentVal(&hf.Rate), "rate", "r", "Mortgage interest rate")
+
+	cmd.Flags().Int64VarP(&hf.Years, "years", "y", 30, "Mortgage term in years")
+
+	hf.ClosingPercent = decimal.NewFromFloat(.03)
+	cmd.Flags().Var(flagx.NewPercentVal(&hf.ClosingPercent), "closing-percent", "Estimated closing costs as a percent")
+	flagx.DecimalVarP(cmd.Flags(), &hf.AnnualTax, "taxes", "t", decimal.Zero, "Annual property taxes")
+	flagx.DecimalVarP(cmd.Flags(), &hf.AnnualInsurance, "insurance", "i", decimal.Zero, "Annual homeowners insurance")
+	cmd.Flags().Var(flagx.NewPercentVal(&hf.PmiRate), "pmi", "PMI rate")
+	flagx.DecimalVar(cmd.Flags(), &hf.MonthlyHoa, "hoa", decimal.Zero, "Monthly HOA fee")
+
+	cmd.MarkFlagRequired("price")
+	cmd.MarkFlagRequired("rate")
+
+	cmd.Flags().SortFlags = false
+	cmd.Flags().PrintDefaults()
+
+	return cmd
 }
 
 func runHouseCmd(prt fmtx.DecimalPrinter, hf homeFlags) {
