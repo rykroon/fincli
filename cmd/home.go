@@ -40,7 +40,7 @@ func NewHomeCmd() *cobra.Command {
 		Short: "Calculate the costs of purchasing a home.",
 		Run: func(cmd *cobra.Command, args []string) {
 			sep, _ := flagx.GetRune(cmd.Flags(), "sep")
-			prt := fmtx.NewDecimalPrinter(sep)
+			prt := fmtx.NewNumberPrinter(sep)
 			runHouseCmd(prt, hf)
 		},
 	}
@@ -95,7 +95,7 @@ func NewHomeCmd() *cobra.Command {
 	return cmd
 }
 
-func runHouseCmd(prt fmtx.DecimalPrinter, hf homeFlags) {
+func runHouseCmd(prt fmtx.NumberPrinter, hf homeFlags) {
 	oneHundred := decimal.NewFromInt(100)
 	// Print Summary
 	prt.Printf("Home Price: $%.2v\n", hf.Price)

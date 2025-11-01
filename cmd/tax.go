@@ -16,7 +16,7 @@ func NewTaxCmd() *cobra.Command {
 
 	runE := func(cmd *cobra.Command, args []string) error {
 		sep, _ := flagx.GetRune(cmd.Flags(), "sep")
-		prt := fmtx.NewDecimalPrinter(sep)
+		prt := fmtx.NewNumberPrinter(sep)
 		taxPayer := tax.NewTaxPayer(
 			income,
 			tax.FilingStatus(filingStatus),
@@ -39,7 +39,7 @@ func NewTaxCmd() *cobra.Command {
 	return cmd
 }
 
-func runTaxCmd(prt fmtx.DecimalPrinter, year uint16, taxPayer tax.TaxPayer) error {
+func runTaxCmd(prt fmtx.NumberPrinter, year uint16, taxPayer tax.TaxPayer) error {
 	prt.Printf("Gross Income: $%.2v\n", taxPayer.Income)
 	prt.Println("")
 

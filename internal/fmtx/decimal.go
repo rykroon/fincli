@@ -8,26 +8,26 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type DecFmt struct {
-	decimal decimal.Decimal
-	sep     rune
+type FormattableDecimal struct {
+	value decimal.Decimal
+	sep   rune
 }
 
-func NewDecFmt(d decimal.Decimal, sep rune) DecFmt {
-	return DecFmt{d, sep}
+func NewFormattableDecimal(d decimal.Decimal, sep rune) FormattableDecimal {
+	return FormattableDecimal{d, sep}
 }
 
-func (df DecFmt) Format(state fmt.State, verb rune) {
+func (fd FormattableDecimal) Format(state fmt.State, verb rune) {
 	switch verb {
 	case 'v', 's':
-		fmt.Fprint(state, FormatDecimal(state, df.decimal, df.sep))
+		fmt.Fprint(state, FormatDecimal(state, fd.value, fd.sep))
 
 	case 'e', 'E', 'f', 'F', 'g', 'G':
 		// handle decimal as float
-		fmt.Fprintf(state, fmt.FormatString(state, verb), df.decimal.InexactFloat64())
+		fmt.Fprintf(state, fmt.FormatString(state, verb), fd.value.InexactFloat64())
 
 	default:
-		fmt.Fprintf(state, fmt.FormatString(state, verb), df.decimal)
+		fmt.Fprintf(state, fmt.FormatString(state, verb), fd.value)
 	}
 }
 

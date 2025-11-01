@@ -6,29 +6,29 @@ import (
 	"github.com/shopspring/decimal"
 )
 
-type DecimalPrinter struct {
+type NumberPrinter struct {
 	sep rune
 }
 
-func NewDecimalPrinter(sep rune) DecimalPrinter {
-	return DecimalPrinter{sep}
+func NewNumberPrinter(sep rune) NumberPrinter {
+	return NumberPrinter{sep}
 }
 
-func (p DecimalPrinter) Printf(format string, a ...any) (int, error) {
+func (p NumberPrinter) Printf(format string, a ...any) (int, error) {
 	return fmt.Printf(format, p.transformArgs(a)...)
 }
 
-func (p DecimalPrinter) Println(a ...any) (int, error) {
+func (p NumberPrinter) Println(a ...any) (int, error) {
 	return fmt.Println(a...)
 }
 
 // Wrap decimal.Decimal in DecFmt with separator.
-func (p DecimalPrinter) transformArgs(args []any) []any {
+func (p NumberPrinter) transformArgs(args []any) []any {
 	out := make([]any, 0, len(args))
 	for _, arg := range args {
 		switch v := arg.(type) {
 		case decimal.Decimal:
-			out = append(out, NewDecFmt(v, p.sep))
+			out = append(out, NewFormattableDecimal(v, p.sep))
 		default:
 			out = append(out, v)
 		}

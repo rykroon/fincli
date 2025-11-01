@@ -14,20 +14,20 @@ func newDecimalValue(val decimal.Decimal, p *decimal.Decimal) *decimalValue {
 	return (*decimalValue)(p)
 }
 
-func (d *decimalValue) Set(s string) error {
+func (dv *decimalValue) Set(s string) error {
 	s = strings.ReplaceAll(s, "_", "")
-	v, err := decimal.NewFromString(s)
+	d, err := decimal.NewFromString(s)
 	if err != nil {
 		return err
 	}
-	*d = decimalValue(v)
+	*dv = decimalValue(d)
 	return nil
 }
 
-func (d decimalValue) Type() string { return "decimal" }
+func (dv decimalValue) Type() string { return "decimal" }
 
-func (d decimalValue) String() string {
-	return decimal.Decimal(d).String()
+func (dv decimalValue) String() string {
+	return decimal.Decimal(dv).String()
 }
 
 func DecimalVarP(f *pflag.FlagSet, p *decimal.Decimal, name, shorthand string, value decimal.Decimal, usage string) {

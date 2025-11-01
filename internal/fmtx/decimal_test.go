@@ -63,7 +63,7 @@ func TestFormatDecimal(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			decfmt := NewDecFmt(d, tc.sep)
+			decfmt := NewFormattableDecimal(d, tc.sep)
 			got := fmt.Sprintf(tc.format, decfmt)
 			if got != tc.expected {
 				t.Errorf("Got %q, wanted %q", got, tc.expected)

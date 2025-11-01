@@ -19,7 +19,7 @@ func NewAmortizeCmd() *cobra.Command {
 		Short: "Print an Amortization Schedule",
 		Run: func(cmd *cobra.Command, args []string) {
 			sep, _ := flagx.GetRune(cmd.Flags(), "sep")
-			prt := fmtx.NewDecimalPrinter(sep)
+			prt := fmtx.NewNumberPrinter(sep)
 			runAmortizeCmd(af, prt)
 		},
 	}
@@ -62,7 +62,7 @@ func (af amortizeFlags) HasExtraPayment() bool {
 	return af.ExtraAnnualPayment.GreaterThan(decimal.Zero) || af.ExtraMonthlyPayment.GreaterThan(decimal.Zero)
 }
 
-func runAmortizeCmd(af amortizeFlags, prt fmtx.DecimalPrinter) {
+func runAmortizeCmd(af amortizeFlags, prt fmtx.NumberPrinter) {
 	loan := mortgage.NewLoan(af.Principal, af.Rate, af.Years)
 	sched := mortgage.CalculateSchedule(loan)
 	monthlyPayment := mortgage.CalculateMonthlyPayment(loan.Principal, loan.MonthlyRate(), loan.NumPeriods())

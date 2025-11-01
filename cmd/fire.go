@@ -16,7 +16,7 @@ func NewFireCmd() *cobra.Command {
 		Short: "Calculate your FIRE number.",
 		Run: func(cmd *cobra.Command, args []string) {
 			sep, _ := flagx.GetRune(cmd.Flags(), "sep")
-			prt := fmtx.NewDecimalPrinter(sep)
+			prt := fmtx.NewNumberPrinter(sep)
 			runFireCmd(prt, annualExpenses, safeWithdrawlRate)
 		},
 	}
@@ -41,7 +41,7 @@ func NewFireCmd() *cobra.Command {
 	return cmd
 }
 
-func runFireCmd(prt fmtx.DecimalPrinter, annualExpenses, swr decimal.Decimal) {
+func runFireCmd(prt fmtx.NumberPrinter, annualExpenses, swr decimal.Decimal) {
 	fireNumber := annualExpenses.Div(swr)
 	prt.Printf("FIRE Number: $%.2v\n", fireNumber)
 	prt.Printf("Safe Withdrawl Rate: %.2v%%\n", swr.Mul(decimal.NewFromInt(100)))
