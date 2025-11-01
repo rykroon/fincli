@@ -39,7 +39,7 @@ func NewHomeCmd() *cobra.Command {
 		Use:   "home",
 		Short: "Calculate the costs of purchasing a home.",
 		Run: func(cmd *cobra.Command, args []string) {
-			sep, _ := flagx.GetRune(cmd.PersistentFlags(), "sep")
+			sep, _ := flagx.GetRune(cmd.Flags(), "sep")
 			prt := fmtx.NewDecimalPrinter(sep)
 			runHouseCmd(prt, hf)
 		},
@@ -47,18 +47,43 @@ func NewHomeCmd() *cobra.Command {
 
 	flagx.DecimalVarP(cmd.Flags(), &hf.Price, "price", "p", decimal.Zero, "Home price")
 
-	hf.DownPaymentPercent = decimal.NewFromFloat(.2)
-	cmd.Flags().VarP(flagx.NewPercentVal(&hf.DownPaymentPercent), "down", "d", "Down payment percent")
+	flagx.PercentVarP(
+		cmd.Flags(),
+		&hf.DownPaymentPercent,
+		"down",
+		"d",
+		decimal.NewFromFloat(.2),
+		"Down payment percent",
+	)
 
-	cmd.Flags().VarP(flagx.NewPercentVal(&hf.Rate), "rate", "r", "Mortgage interest rate")
+	flagx.PercentVarP(
+		cmd.Flags(), &hf.Rate, "rate", "r", decimal.Zero, "Mortgage interest rate",
+	)
 
 	cmd.Flags().Int64VarP(&hf.Years, "years", "y", 30, "Mortgage term in years")
 
-	hf.ClosingPercent = decimal.NewFromFloat(.03)
-	cmd.Flags().Var(flagx.NewPercentVal(&hf.ClosingPercent), "closing-percent", "Estimated closing costs as a percent")
-	flagx.DecimalVarP(cmd.Flags(), &hf.AnnualTax, "taxes", "t", decimal.Zero, "Annual property taxes")
-	flagx.DecimalVarP(cmd.Flags(), &hf.AnnualInsurance, "insurance", "i", decimal.Zero, "Annual homeowners insurance")
-	cmd.Flags().Var(flagx.NewPercentVal(&hf.PmiRate), "pmi", "PMI rate")
+	flagx.PercentVar(
+		cmd.Flags(),
+		&hf.ClosingPercent,
+		"closing-percent",
+		decimal.NewFromFloat(.03),
+		"Estimated closing costs as a percent",
+	)
+
+	flagx.DecimalVarP(
+		cmd.Flags(), &hf.AnnualTax, "taxes", "t", decimal.Zero, "Annual property taxes",
+	)
+
+	flagx.DecimalVarP(
+		cmd.Flags(),
+		&hf.AnnualInsurance,
+		"insurance",
+		"i",
+		decimal.Zero,
+		"Annual homeowners insurance",
+	)
+
+	flagx.PercentVar(cmd.Flags(), &hf.PmiRate, "pmi", decimal.Zero, "PMI rate")
 	flagx.DecimalVar(cmd.Flags(), &hf.MonthlyHoa, "hoa", decimal.Zero, "Monthly HOA fee")
 
 	cmd.MarkFlagRequired("price")

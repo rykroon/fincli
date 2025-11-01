@@ -9,20 +9,29 @@ import (
 
 func NewFireCmd() *cobra.Command {
 	var annualExpenses decimal.Decimal
-	safeWithdrawlRate := decimal.NewFromFloat(.04)
+	var safeWithdrawlRate decimal.Decimal
 
 	cmd := &cobra.Command{
 		Use:   "fire",
 		Short: "Calculate your FIRE number.",
 		Run: func(cmd *cobra.Command, args []string) {
-			sep, _ := flagx.GetRune(cmd.PersistentFlags(), "sep")
+			sep, _ := flagx.GetRune(cmd.Flags(), "sep")
 			prt := fmtx.NewDecimalPrinter(sep)
 			runFireCmd(prt, annualExpenses, safeWithdrawlRate)
 		},
 	}
 
-	flagx.DecimalVarP(cmd.Flags(), &annualExpenses, "expenses", "e", decimal.Zero, "Annual expenses.")
-	cmd.Flags().Var(flagx.NewPercentVal(&safeWithdrawlRate), "swr", "Safe withdrawl rate.")
+	flagx.DecimalVarP(
+		cmd.Flags(), &annualExpenses, "expenses", "e", decimal.Zero, "Annual expenses.",
+	)
+
+	flagx.PercentVar(
+		cmd.Flags(),
+		&safeWithdrawlRate,
+		"swr",
+		decimal.NewFromFloat(.04),
+		"Safe withdrawl rate.",
+	)
 
 	cmd.MarkFlagRequired("expenses")
 

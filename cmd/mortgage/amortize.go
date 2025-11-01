@@ -18,7 +18,7 @@ func NewAmortizeCmd() *cobra.Command {
 		Use:   "amortize",
 		Short: "Print an Amortization Schedule",
 		Run: func(cmd *cobra.Command, args []string) {
-			sep, _ := flagx.GetRune(cmd.PersistentFlags(), "sep")
+			sep, _ := flagx.GetRune(cmd.Flags(), "sep")
 			prt := fmtx.NewDecimalPrinter(sep)
 			runAmortizeCmd(af, prt)
 		},
@@ -26,7 +26,7 @@ func NewAmortizeCmd() *cobra.Command {
 
 	flagx.DecimalVarP(cmd.Flags(), &af.Principal, "principal", "p", decimal.Zero, "The principal (loan amount)")
 
-	cmd.Flags().VarP(flagx.NewPercentVal(&af.Rate), "rate", "r", "Annual interest rate")
+	flagx.PercentVarP(cmd.Flags(), &af.Rate, "rate", "r", decimal.Zero, "Annual interest rate")
 	cmd.Flags().Int64VarP(&af.Years, "years", "y", 30, "Loan term in years")
 
 	cmd.MarkFlagRequired("principal")
