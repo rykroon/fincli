@@ -1,28 +1,41 @@
 package fmtx
 
-import "fmt"
-
-// could probably be simplified even more by
-// replacing Sign() with IsNegative()
-// padding can be figured out by just knowing the length of the sign
-// and length of the number.
+import (
+	"fmt"
+)
 
 type FormattableNumber interface {
-	Sign(fmt.State) rune
-	Number(fmt.State) string
-	Padding(fmt.State) string
+	IsNegative() bool
+	IntPart() string
+	FracPart(int) string
 }
 
 func FormatNumber(num FormattableNumber, state fmt.State) string {
-	sign := num.Sign(state)
-	numstr := num.Number(state)
-	padding := num.Padding(state)
+	var sign string
+	if num.IsNegative() {
+		sign = "-"
+	} else {
+		sign = GetPositiveSign(state)
+	}
+
+	numStr := num.IntPart()
+	precision, ok := state.Precision()
+	if !ok {
+		precision = -1
+	}
+	fracPart := num.FracPart(precision)
+	if fracPart != "" {
+		numStr += fracPart
+	}
+
+	strLen := len(sign) + len(numStr)
+	padding := BuildPadding(state, strLen)
 
 	if LeftAlign(state) {
-		return string(sign) + numstr + padding
+		return sign + numStr + padding
 	} else if ZeroPad(state) {
-		return string(sign) + padding + numstr
+		return sign + padding + numStr
 	} else {
-		return padding + string(sign) + numstr
+		return padding + string(sign) + numStr
 	}
 }
