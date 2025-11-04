@@ -1,11 +1,9 @@
 package mortgage
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/rykroon/fincli/internal/flagx"
-	"github.com/rykroon/fincli/internal/fmtx"
 	"github.com/rykroon/fincli/internal/mortgage"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
@@ -18,9 +16,7 @@ func NewAmortizeCmd() *cobra.Command {
 		Use:   "amortize",
 		Short: "Print an Amortization Schedule",
 		Run: func(cmd *cobra.Command, args []string) {
-			sep, _ := flagx.GetRune(cmd.Flags(), "sep")
-			prt := fmtx.NewNumberPrinter(sep)
-			runAmortizeCmd(af, prt)
+			runAmortizeCmd(af)
 		},
 	}
 
@@ -36,10 +32,7 @@ func NewAmortizeCmd() *cobra.Command {
 	flagx.DecimalVar(cmd.Flags(), &af.ExtraMonthlyPayment, "extra-monthly", decimal.Zero, "Extra monthly payment")
 	flagx.DecimalVar(cmd.Flags(), &af.ExtraAnnualPayment, "extra-annual", decimal.Zero, "Extra annual payment")
 
-	cmd.Flags().BoolVar(&af.MonthlySchedule, "monthly-schedule", false, "Print the monthly amortization schedule")
-	cmd.Flags().BoolVar(&af.AnnualSchedule, "annual-schedule", false, "Print the annual amortization schedule")
-
-	cmd.MarkFlagsMutuallyExclusive("monthly-schedule", "annual-schedule")
+	cmd.Flags().BoolVar(&af.AnnualSchedule, "annual", false, "Print the annual amortization schedule")
 
 	cmd.Flags().SortFlags = false
 	cmd.Flags().PrintDefaults()
@@ -62,7 +55,7 @@ func (af amortizeFlags) HasExtraPayment() bool {
 	return af.ExtraAnnualPayment.GreaterThan(decimal.Zero) || af.ExtraMonthlyPayment.GreaterThan(decimal.Zero)
 }
 
-func runAmortizeCmd(af amortizeFlags, prt fmtx.NumberPrinter) {
+func runAmortizeCmd(af amortizeFlags) {
 	loan := mortgage.NewLoan(af.Principal, af.Rate, af.Years)
 	sched := mortgage.CalculateSchedule(loan)
 	monthlyPayment := mortgage.CalculateMonthlyPayment(loan.Principal, loan.MonthlyRate(), loan.NumPeriods())
@@ -81,50 +74,52 @@ func runAmortizeCmd(af amortizeFlags, prt fmtx.NumberPrinter) {
 	prt.Printf("Pay off in %v years and %v months\n", years, months)
 	prt.Println("")
 
-	printMonthlySchedule(sched)
-
 	if af.AnnualSchedule {
 		printAnnualSchedule(sched)
+	} else {
+		printMonthlySchedule(sched)
 	}
 }
 
 func printMonthlySchedule(schedule mortgage.Schedule) {
-	fmt.Printf(
-		"%-6s %-12s %-12s %-12s %-12s\n",
-		"Month",
-		"Principal",
-		"Interest",
-		"Total",
-		"Balance",
-	)
-	fmt.Println(strings.Repeat("-", 89))
 	for _, payment := range schedule.Payments {
-		fmt.Printf(
-			"%-6d $%-11s $%-14s $%-14s $%-11s\n",
+		if payment.Period%12 == 1 {
+			prt.Printf(
+				"%-6s %-12s %-12s %-12s %-12s\n",
+				"Month",
+				"Principal",
+				"Interest",
+				"Total",
+				"Balance",
+			)
+			prt.Println(strings.Repeat("-", 89))
+		}
+
+		prt.Printf(
+			"%-6d $%-11.2v $%-11.2v $%-11.2v $%-11.2v\n",
 			payment.Period,
-			payment.Principal.StringFixed(2),
-			payment.Interest.StringFixed(2),
-			payment.Total().StringFixed(2),
-			payment.Balance.StringFixed(2),
+			payment.Principal,
+			payment.Interest,
+			payment.Total(),
+			payment.Balance,
 		)
 
 		if payment.Period%12 == 0 {
-			fmt.Printf("\t--- End of Year %d ---\n", payment.Period/12)
+			prt.Printf("\t--- End of Year %d ---\n\n", payment.Period/12)
 		}
 	}
 }
 
 func printAnnualSchedule(schedule mortgage.Schedule) {
-	fmt.Printf(
-		"%-6s %-12s %-12s %-12s %-12s %-12s\n",
+	prt.Printf(
+		"%-6s %-12s %-12s %-12s %-12s\n",
 		"Year",
 		"Principal",
-		"Total Principal",
 		"Interest",
 		"Total",
 		"Balance",
 	)
-	fmt.Println(strings.Repeat("-", 89))
+	prt.Println(strings.Repeat("-", 89))
 	annualPrincipal := decimal.Zero
 	annualInterest := decimal.Zero
 	annualPayments := decimal.Zero
@@ -135,13 +130,13 @@ func printAnnualSchedule(schedule mortgage.Schedule) {
 		annualPayments = annualPayments.Add(payment.Total())
 
 		if payment.Period%12 == 0 {
-			fmt.Printf(
-				"%-6d $%-11s $%-11s $%-12s $%-11s\n",
+			prt.Printf(
+				"%-6d $%-11.2v $%-11.2v $%-11.2v $%-11.2v\n",
 				payment.Period/12,
-				annualPrincipal.StringFixed(2),
-				annualInterest.StringFixed(2),
-				annualPayments.StringFixed(2),
-				payment.Balance.StringFixed(2),
+				annualPrincipal,
+				annualInterest,
+				annualPayments,
+				payment.Balance,
 			)
 			annualPrincipal = decimal.Zero
 			annualInterest = decimal.Zero
