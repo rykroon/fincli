@@ -11,7 +11,7 @@ type homeFlags struct {
 	Price              decimal.Decimal
 	DownPaymentPercent decimal.Decimal
 	Rate               decimal.Decimal
-	Years              int64
+	Years              uint16
 	ClosingPercent     decimal.Decimal
 	AnnualTax          decimal.Decimal
 	AnnualInsurance    decimal.Decimal
@@ -57,7 +57,7 @@ func NewHomeCmd() *cobra.Command {
 		cmd.Flags(), &hf.Rate, "rate", "r", decimal.Zero, "Mortgage interest rate",
 	)
 
-	cmd.Flags().Int64VarP(&hf.Years, "years", "y", 30, "Mortgage term in years")
+	cmd.Flags().Uint16VarP(&hf.Years, "years", "y", 30, "Mortgage term in years")
 
 	flagx.PercentVar(
 		cmd.Flags(),

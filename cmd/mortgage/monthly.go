@@ -11,7 +11,7 @@ import (
 func NewMontlyCmd() *cobra.Command {
 	var principal decimal.Decimal
 	var rate decimal.Decimal
-	var years int64
+	var years uint16
 
 	cmd := &cobra.Command{
 		Use:   "monthly",
@@ -26,7 +26,7 @@ func NewMontlyCmd() *cobra.Command {
 
 	flagx.DecimalVarP(cmd.Flags(), &principal, "principal", "p", decimal.Zero, "Principal (loan amount)")
 	flagx.PercentVarP(cmd.Flags(), &rate, "rate", "r", decimal.Zero, "Annual interest rate")
-	cmd.Flags().Int64VarP(&years, "years", "y", 30, "Loan term in years")
+	cmd.Flags().Uint16VarP(&years, "years", "y", 30, "Loan term in years")
 
 	cmd.MarkFlagRequired("principal")
 	cmd.MarkFlagRequired("rate")

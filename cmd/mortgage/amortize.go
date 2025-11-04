@@ -23,7 +23,7 @@ func NewAmortizeCmd() *cobra.Command {
 	flagx.DecimalVarP(cmd.Flags(), &af.Principal, "principal", "p", decimal.Zero, "The principal (loan amount)")
 
 	flagx.PercentVarP(cmd.Flags(), &af.Rate, "rate", "r", decimal.Zero, "Annual interest rate")
-	cmd.Flags().Int64VarP(&af.Years, "years", "y", 30, "Loan term in years")
+	cmd.Flags().Uint16VarP(&af.Years, "years", "y", 30, "Loan term in years")
 
 	cmd.MarkFlagRequired("principal")
 	cmd.MarkFlagRequired("rate")
@@ -44,7 +44,7 @@ func NewAmortizeCmd() *cobra.Command {
 type amortizeFlags struct {
 	Principal           decimal.Decimal
 	Rate                decimal.Decimal
-	Years               int64
+	Years               uint16
 	ExtraMonthlyPayment decimal.Decimal
 	ExtraAnnualPayment  decimal.Decimal
 	MonthlySchedule     bool
@@ -92,7 +92,7 @@ func printMonthlySchedule(schedule mortgage.Schedule) {
 				"Total",
 				"Balance",
 			)
-			prt.Println(strings.Repeat("-", 89))
+			prt.Println(strings.Repeat("-", 60))
 		}
 
 		prt.Printf(
@@ -119,7 +119,7 @@ func printAnnualSchedule(schedule mortgage.Schedule) {
 		"Total",
 		"Balance",
 	)
-	prt.Println(strings.Repeat("-", 89))
+	prt.Println(strings.Repeat("-", 60))
 	annualPrincipal := decimal.Zero
 	annualInterest := decimal.Zero
 	annualPayments := decimal.Zero

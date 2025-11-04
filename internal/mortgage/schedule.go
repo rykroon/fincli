@@ -47,9 +47,9 @@ func CalculateSchedule(loan Loan) Schedule {
 	return schedule
 }
 
-func CalculateMonthlyPayment(p decimal.Decimal, i decimal.Decimal, n int64) decimal.Decimal {
+func CalculateMonthlyPayment(p, i decimal.Decimal, n uint16) decimal.Decimal {
 	// P * ((i * (1+i)^n) / ((1+i)^n - 1))
 	one := decimal.NewFromInt(1)
-	onePlusIPowN := one.Add(i).Pow(decimal.NewFromInt(n))
+	onePlusIPowN := one.Add(i).Pow(decimal.NewFromUint64(uint64(n)))
 	return p.Mul((i.Mul(onePlusIPowN)).Div(onePlusIPowN.Sub(one)))
 }
