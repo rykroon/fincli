@@ -20,19 +20,52 @@ func NewAmortizeCmd() *cobra.Command {
 		},
 	}
 
-	flagx.DecimalVarP(cmd.Flags(), &af.Principal, "principal", "p", decimal.Zero, "The principal (loan amount)")
+	flagx.DecimalVarP(
+		cmd.Flags(),
+		&af.Principal,
+		"principal",
+		"p",
+		decimal.Zero,
+		"The principal (loan amount)",
+	)
 
-	flagx.PercentVarP(cmd.Flags(), &af.Rate, "rate", "r", decimal.Zero, "Annual interest rate")
+	flagx.PercentVarP(
+		cmd.Flags(),
+		&af.Rate,
+		"rate",
+		"r",
+		decimal.Zero,
+		"Annual interest rate",
+	)
+
 	cmd.Flags().Uint16VarP(&af.Years, "years", "y", 30, "Loan term in years")
 
 	cmd.MarkFlagRequired("principal")
 	cmd.MarkFlagRequired("rate")
 
 	// optional flags
-	flagx.DecimalVar(cmd.Flags(), &af.ExtraMonthlyPayment, "extra-monthly", decimal.Zero, "Extra monthly payment")
-	flagx.DecimalVar(cmd.Flags(), &af.ExtraAnnualPayment, "extra-annual", decimal.Zero, "Extra annual payment")
+	flagx.DecimalVar(
+		cmd.Flags(),
+		&af.ExtraMonthlyPayment,
+		"extra-monthly",
+		decimal.Zero,
+		"Extra monthly payment",
+	)
 
-	cmd.Flags().BoolVar(&af.AnnualSchedule, "annual", false, "Print the annual amortization schedule")
+	flagx.DecimalVar(
+		cmd.Flags(),
+		&af.ExtraAnnualPayment,
+		"extra-annual",
+		decimal.Zero,
+		"Extra annual payment",
+	)
+
+	cmd.Flags().BoolVar(
+		&af.AnnualSchedule,
+		"annual",
+		false,
+		"Print the annual amortization schedule",
+	)
 
 	cmd.Flags().SortFlags = false
 	cmd.Flags().PrintDefaults()
@@ -52,13 +85,16 @@ type amortizeFlags struct {
 }
 
 func (af amortizeFlags) HasExtraPayment() bool {
-	return af.ExtraAnnualPayment.GreaterThan(decimal.Zero) || af.ExtraMonthlyPayment.GreaterThan(decimal.Zero)
+	return (af.ExtraAnnualPayment.GreaterThan(decimal.Zero) ||
+		af.ExtraMonthlyPayment.GreaterThan(decimal.Zero))
 }
 
 func runAmortizeCmd(af amortizeFlags) {
 	loan := mortgage.NewLoan(af.Principal, af.Rate, af.Years)
 	sched := mortgage.CalculateSchedule(loan)
-	monthlyPayment := mortgage.CalculateMonthlyPayment(loan.Principal, loan.MonthlyRate(), loan.NumPeriods())
+	monthlyPayment := mortgage.CalculateMonthlyPayment(
+		loan.Principal, loan.MonthlyRate(), loan.NumPeriods(),
+	)
 
 	prt.Printf("Monthly Payment: $%.2v\n", monthlyPayment)
 	if !monthlyPayment.Round(2).Equal(sched.AverageMonthlyPayment().Round(2)) {
