@@ -5,10 +5,17 @@ import (
 )
 
 type Schedule struct {
-	Loan          *Loan
+	Loan          Loan
 	Payments      []Payment
 	TotalAmount   decimal.Decimal
 	TotalInterest decimal.Decimal
+}
+
+func NewSchedule(loan Loan) Schedule {
+	return Schedule{
+		Loan:     loan,
+		Payments: make([]Payment, 0, loan.NumPeriods()),
+	}
 }
 
 func (s *Schedule) appendPayment(p Payment) {
@@ -25,12 +32,9 @@ func (s Schedule) AverageMonthlyPayment() decimal.Decimal {
 	return s.TotalAmount.Div(s.NumPeriods())
 }
 
-func CalculateSchedule(loan *Loan) Schedule {
+func CalculateSchedule(loan Loan) Schedule {
+	schedule := NewSchedule(loan)
 	balance := loan.Principal
-	schedule := Schedule{
-		Loan:     loan,
-		Payments: make([]Payment, 0, loan.NumPeriods()),
-	}
 	strategy := DefaultStrategy{}
 	for period := 1; balance.Round(2).GreaterThan(decimal.Zero); period++ {
 		paymentAmount := strategy.NextPayment(loan)

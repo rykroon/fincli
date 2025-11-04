@@ -10,8 +10,8 @@ type Loan struct {
 	NumYears   int64
 }
 
-func NewLoan(p decimal.Decimal, r decimal.Decimal, y int64) *Loan {
-	return &Loan{
+func NewLoan(p, r decimal.Decimal, y int64) Loan {
+	return Loan{
 		Principal:  p,
 		AnnualRate: r,
 		NumYears:   y,

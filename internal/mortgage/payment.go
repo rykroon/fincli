@@ -11,12 +11,7 @@ type Payment struct {
 	Balance   decimal.Decimal
 }
 
-func NewPayment(
-	period int,
-	principal decimal.Decimal,
-	interest decimal.Decimal,
-	balance decimal.Decimal,
-) Payment {
+func NewPayment(period int, principal, interest, balance decimal.Decimal) Payment {
 	return Payment{
 		Period:    period,
 		Principal: principal,

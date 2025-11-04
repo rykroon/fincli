@@ -36,7 +36,7 @@ func NewMontlyCmd() *cobra.Command {
 	return cmd
 }
 
-func runMonthlyCmd(loan *mortgage.Loan, prt fmtx.NumberPrinter) {
+func runMonthlyCmd(loan mortgage.Loan, prt fmtx.NumberPrinter) {
 	sched := mortgage.CalculateSchedule(loan)
 	monthlyPayment := mortgage.CalculateMonthlyPayment(loan.Principal, loan.MonthlyRate(), loan.NumPeriods())
 	prt.Printf("Monthly Payment: $%.2v\n", monthlyPayment)
