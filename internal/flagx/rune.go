@@ -48,7 +48,7 @@ func RuneP(f *pflag.FlagSet, name, shorthand string, value rune, usage string) *
 }
 
 func GetRune(f *pflag.FlagSet, name string) (rune, error) {
-	flag := f.Lookup("sep")
+	flag := f.Lookup(name)
 	if flag == nil {
 		return 0, fmt.Errorf("flag '%s' not found", name)
 	}
