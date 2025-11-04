@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"github.com/rykroon/fincli/internal/flagx"
-	"github.com/rykroon/fincli/internal/fmtx"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
 )
@@ -15,9 +14,7 @@ func NewFireCmd() *cobra.Command {
 		Use:   "fire",
 		Short: "Calculate your FIRE number.",
 		Run: func(cmd *cobra.Command, args []string) {
-			sep, _ := flagx.GetRune(cmd.Flags(), "sep")
-			prt := fmtx.NewNumberPrinter(sep)
-			runFireCmd(prt, annualExpenses, safeWithdrawlRate)
+			runFireCmd(annualExpenses, safeWithdrawlRate)
 		},
 	}
 
@@ -41,7 +38,7 @@ func NewFireCmd() *cobra.Command {
 	return cmd
 }
 
-func runFireCmd(prt fmtx.NumberPrinter, annualExpenses, swr decimal.Decimal) {
+func runFireCmd(annualExpenses, swr decimal.Decimal) {
 	fireNumber := annualExpenses.Div(swr)
 	prt.Printf("FIRE Number: $%.2v\n", fireNumber)
 	prt.Printf("Safe Withdrawl Rate: %.2v%%\n", swr.Mul(decimal.NewFromInt(100)))

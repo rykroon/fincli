@@ -6,6 +6,7 @@ import (
 
 	"github.com/rykroon/fincli/cmd/mortgage"
 	"github.com/rykroon/fincli/internal/flagx"
+	"github.com/rykroon/fincli/internal/fmtx"
 	"github.com/spf13/cobra"
 )
 
@@ -17,6 +18,8 @@ func Execute() {
 	}
 }
 
+var prt fmtx.NumberPrinter
+
 func NewRootCmd() *cobra.Command {
 	persistentPreRunE := func(cmd *cobra.Command, args []string) error {
 		sep, err := flagx.GetRune(cmd.Flags(), "sep")
@@ -26,6 +29,8 @@ func NewRootCmd() *cobra.Command {
 		if sep != 0 && sep != ',' && sep != '_' {
 			return fmt.Errorf("invalid value '%c' for sep, must be ',' or '_'", sep)
 		}
+
+		prt = fmtx.NewNumberPrinter(sep)
 		return nil
 	}
 

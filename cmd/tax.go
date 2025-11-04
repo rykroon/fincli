@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"github.com/rykroon/fincli/internal/flagx"
-	"github.com/rykroon/fincli/internal/fmtx"
 	"github.com/rykroon/fincli/internal/tax"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
@@ -15,14 +14,12 @@ func NewTaxCmd() *cobra.Command {
 	var adjustments decimal.Decimal
 
 	runE := func(cmd *cobra.Command, args []string) error {
-		sep, _ := flagx.GetRune(cmd.Flags(), "sep")
-		prt := fmtx.NewNumberPrinter(sep)
 		taxPayer := tax.NewTaxPayer(
 			income,
 			tax.FilingStatus(filingStatus),
 			tax.Adjustment{Label: "Adjustments", Amount: adjustments},
 		)
-		runTaxCmd(prt, year, taxPayer)
+		runTaxCmd(year, taxPayer)
 		return nil
 	}
 
@@ -39,7 +36,7 @@ func NewTaxCmd() *cobra.Command {
 	return cmd
 }
 
-func runTaxCmd(prt fmtx.NumberPrinter, year uint16, taxPayer tax.TaxPayer) error {
+func runTaxCmd(year uint16, taxPayer tax.TaxPayer) error {
 	prt.Printf("Gross Income: $%.2v\n", taxPayer.Income)
 	prt.Println("")
 

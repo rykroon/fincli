@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"github.com/rykroon/fincli/internal/flagx"
-	"github.com/rykroon/fincli/internal/fmtx"
 	"github.com/rykroon/fincli/internal/mortgage"
 	"github.com/shopspring/decimal"
 	"github.com/spf13/cobra"
@@ -39,9 +38,7 @@ func NewHomeCmd() *cobra.Command {
 		Use:   "home",
 		Short: "Calculate the costs of purchasing a home.",
 		Run: func(cmd *cobra.Command, args []string) {
-			sep, _ := flagx.GetRune(cmd.Flags(), "sep")
-			prt := fmtx.NewNumberPrinter(sep)
-			runHouseCmd(prt, hf)
+			runHouseCmd(hf)
 		},
 	}
 
@@ -95,7 +92,7 @@ func NewHomeCmd() *cobra.Command {
 	return cmd
 }
 
-func runHouseCmd(prt fmtx.NumberPrinter, hf homeFlags) {
+func runHouseCmd(hf homeFlags) {
 	oneHundred := decimal.NewFromInt(100)
 	// Print Summary
 	prt.Printf("Home Price: $%.2v\n", hf.Price)
