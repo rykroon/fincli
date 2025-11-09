@@ -79,5 +79,13 @@ func runTaxCmd(year uint16, taxPayer tax.TaxPayer) error {
 		ficaTaxResult.MedicareTaxDue,
 	)
 
+	prt.Println("")
+
+	totalTaxes := usTaxResult.TaxesDue.Add(ficaTaxResult.SocialSecurityTaxDue).Add(ficaTaxResult.MedicareTaxDue)
+	prt.Printf("Total Taxes: $%.2v\n", totalTaxes)
+
+	totalRate := totalTaxes.Div(taxPayer.Income).Mul(oneHundred)
+	prt.Printf("Total Tax Rate: %.2v%%\n", totalRate)
+
 	return nil
 }
