@@ -1,22 +1,18 @@
 package tax
 
-import (
-	"github.com/shopspring/decimal"
-)
-
 type FicaTaxSystem struct {
 	SocialSecurityTax CappedTax `json:"social_security_tax"`
 	MedicareTax       FlatTax   `json:"medicare_tax"`
 }
 
-type FicaTaxResult struct {
-	SocialSecurityTaxDue decimal.Decimal
-	MedicareTaxDue       decimal.Decimal
-}
+func (s FicaTaxSystem) CalculateTax(p TaxPayer) TaxResult {
+	ssTaxDue := s.SocialSecurityTax.CalculateTax(p.Income)
+	mcTaxDue := s.MedicareTax.CalculateTax(p.Income)
 
-func (s FicaTaxSystem) CalculateTax(p TaxPayer) FicaTaxResult {
-	return FicaTaxResult{
-		SocialSecurityTaxDue: s.SocialSecurityTax.CalculateTax(p.Income),
-		MedicareTaxDue:       s.MedicareTax.CalculateTax(p.Income),
-	}
+	total := ssTaxDue.Add(mcTaxDue)
+
+	result := NewTaxResult("FICA Tax", total)
+	result.AddStat("Social Security Tax Due", ssTaxDue)
+	result.AddStat("Medicare Tax Due", mcTaxDue)
+	return result
 }

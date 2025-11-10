@@ -46,16 +46,14 @@ func runTaxCmd(year uint16, taxPayer tax.TaxPayer) error {
 	}
 
 	usTaxResult := usTaxSystem.CalculateTax(taxPayer)
-	effectiveTaxRate := usTaxResult.TaxesDue.Div(taxPayer.Income)
-
-	oneHundred := decimal.NewFromInt(100)
 
 	prt.Println("Federal Tax")
-	prt.Printf("  Adjusted Gross Income: $%.2v\n", usTaxResult.AdjustedGrossIncome)
-	prt.Printf("  Standard Deduction: $%.2v\n", usTaxResult.StandardDeduction)
-	prt.Printf("  Taxable Income: $%.2v\n", usTaxResult.TaxableIncome)
-	prt.Printf("  Taxes Due: $%.2v\n", usTaxResult.TaxesDue)
-	prt.Printf("  Marginal Tax Rate: %v%%\n", usTaxResult.MarginalTaxRate.Mul(oneHundred))
+	for _, stat := range usTaxResult.Stats {
+		prt.Printf("  %s: $%.2v\n", stat.Name, stat.Value)
+	}
+
+	effectiveTaxRate := usTaxResult.TaxesDue.Div(taxPayer.Income)
+	oneHundred := decimal.NewFromInt(100)
 	prt.Printf("  Effective Tax Rate: %.2v%%\n", effectiveTaxRate.Mul(oneHundred))
 	prt.Println("")
 
@@ -68,24 +66,9 @@ func runTaxCmd(year uint16, taxPayer tax.TaxPayer) error {
 	ficaTaxResult := ficaTaxSystem.CalculateTax(taxPayer)
 
 	prt.Println("FICA Tax")
-	prt.Printf(
-		"  Social Security Tax (%v%%): $%.2v\n",
-		ficaTaxSystem.SocialSecurityTax.Rate.Mul(oneHundred),
-		ficaTaxResult.SocialSecurityTaxDue,
-	)
-	prt.Printf(
-		"  Medicare Tax (%v%%): $%.2v\n",
-		ficaTaxSystem.MedicareTax.Rate.Mul(oneHundred),
-		ficaTaxResult.MedicareTaxDue,
-	)
-
-	prt.Println("")
-
-	totalTaxes := usTaxResult.TaxesDue.Add(ficaTaxResult.SocialSecurityTaxDue).Add(ficaTaxResult.MedicareTaxDue)
-	prt.Printf("Total Taxes: $%.2v\n", totalTaxes)
-
-	totalRate := totalTaxes.Div(taxPayer.Income).Mul(oneHundred)
-	prt.Printf("Total Tax Rate: %.2v%%\n", totalRate)
+	for _, stat := range ficaTaxResult.Stats {
+		prt.Printf("  %s: $%.2v\n", stat.Name, stat.Value)
+	}
 
 	return nil
 }

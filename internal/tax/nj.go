@@ -11,13 +11,13 @@ type NjTaxResult struct {
 	TaxesDue        decimal.Decimal
 }
 
-func (sys NjTaxSystem) CalculateTax(p TaxPayer) NjTaxResult {
+func (sys NjTaxSystem) CalculateTax(p TaxPayer) TaxResult {
 	taxCalc, ok := sys.FilingConfigs[p.FilingStatus]
 	if !ok {
 		panic("filing status not found")
 	}
-	return NjTaxResult{
-		MarginalTaxRate: taxCalc.GetMarginalBracket(p.Income).Rate,
-		TaxesDue:        taxCalc.CalculateTax(p.Income),
-	}
+	taxesDue := taxCalc.CalculateTax(p.Income)
+	result := NewTaxResult("NJ Tax", taxesDue)
+	result.AddStat("Marginal Tax Rate", taxCalc.GetMarginalBracket(p.Income).Rate)
+	return result
 }

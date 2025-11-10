@@ -9,19 +9,19 @@ type UsFilingConfig struct {
 	Schedule          ProgressiveTax  `json:"schedule"`
 }
 
-type UsTaxSystemResult struct {
-	StandardDeduction   decimal.Decimal
-	AdjustedGrossIncome decimal.Decimal
-	TaxableIncome       decimal.Decimal
-	MarginalTaxRate     decimal.Decimal
-	TaxesDue            decimal.Decimal
-}
+// type UsTaxSystemResult struct {
+// 	StandardDeduction   decimal.Decimal
+// 	AdjustedGrossIncome decimal.Decimal
+// 	TaxableIncome       decimal.Decimal
+// 	MarginalTaxRate     decimal.Decimal
+// 	TaxesDue            decimal.Decimal
+// }
 
 type UsTaxSystem struct {
 	FilingConfigs map[FilingStatus]UsFilingConfig `json:"filing_configs"`
 }
 
-func (sys UsTaxSystem) CalculateTax(p TaxPayer) UsTaxSystemResult {
+func (sys UsTaxSystem) CalculateTax(p TaxPayer) TaxResult {
 	adjustedGrossIncome := p.Income
 	for _, adj := range p.Adjustments {
 		adjustedGrossIncome = adj.Adjust(adjustedGrossIncome)
@@ -36,11 +36,11 @@ func (sys UsTaxSystem) CalculateTax(p TaxPayer) UsTaxSystemResult {
 	marginalBracket := config.Schedule.GetMarginalBracket(taxableIncome)
 	taxesDue := config.Schedule.CalculateTax(taxableIncome)
 
-	return UsTaxSystemResult{
-		StandardDeduction:   config.StandardDeduction,
-		AdjustedGrossIncome: adjustedGrossIncome,
-		TaxableIncome:       taxableIncome,
-		MarginalTaxRate:     marginalBracket.Rate,
-		TaxesDue:            taxesDue,
-	}
+	result := NewTaxResult("Federal Tax", taxesDue)
+	result.AddStat("Adjusted Gross Income", adjustedGrossIncome)
+	result.AddStat("Standard Deduction", config.StandardDeduction)
+	result.AddStat("Taxable Income", taxableIncome)
+	result.AddStat("Marginal Tax Rate", marginalBracket.Rate)
+
+	return result
 }
