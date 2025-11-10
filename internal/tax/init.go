@@ -1,38 +1,35 @@
 package tax
 
 import (
+	"embed"
 	"encoding/json"
 	"fmt"
-	"os"
 	"path/filepath"
-	"runtime"
+	"strconv"
 )
 
-var UsFederalRegistry map[uint16]UsTaxSystem
-var FicaRegistry map[uint16]FicaTaxSystem
-var NewJerseyRegistry map[uint16]NjTaxSystem
+//go:embed configs
+var configs embed.FS
 
-func init() {
-	FicaRegistry = loadJson[map[uint16]FicaTaxSystem]("fica.json")
-	UsFederalRegistry = loadJson[map[uint16]UsTaxSystem]("us.json")
-	NewJerseyRegistry = loadJson[map[uint16]NjTaxSystem]("nj.json")
+func GetUsTaxSystem(year uint16) (*UsTaxSystem, error) {
+	return getTaxSystem[UsTaxSystem](year, "us")
 }
 
-func loadJson[T any](jsonfile string) T {
-	_, filename, _, _ := runtime.Caller(0)
-	dir := filepath.Dir(filename)
-	jsonFilePath := filepath.Join(dir, "configs", jsonfile)
+func GetFicaTaxSystem(year uint16) (*FicaTaxSystem, error) {
+	return getTaxSystem[FicaTaxSystem](year, "fica")
+}
 
-	data, err := os.ReadFile(jsonFilePath)
+func getTaxSystem[T any](year uint16, taxSystem string) (*T, error) {
+	name := filepath.Join("configs", strconv.FormatUint(uint64(year), 10), taxSystem+".json")
+	f, err := configs.Open(name)
 	if err != nil {
-		panic(fmt.Errorf("failed to read config file: %w", err))
+		return nil, fmt.Errorf("failed to get tax system: %w", err)
 	}
-
+	defer f.Close()
 	var result T
-
-	if err := json.Unmarshal(data, &result); err != nil {
-		panic(fmt.Errorf("failed to unmarshal config: %w", err))
+	err = json.NewDecoder(f).Decode(&result)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get tax system: %w", err)
 	}
-
-	return result
+	return &result, nil
 }

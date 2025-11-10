@@ -40,9 +40,9 @@ func runTaxCmd(year uint16, taxPayer tax.TaxPayer) error {
 	prt.Printf("Gross Income: $%.2v\n", taxPayer.Income)
 	prt.Println("")
 
-	usTaxSystem, ok := tax.UsFederalRegistry[year]
-	if !ok {
-		panic("tax system not found")
+	usTaxSystem, err := tax.GetUsTaxSystem(year)
+	if err != nil {
+		panic(err)
 	}
 
 	usTaxResult := usTaxSystem.CalculateTax(taxPayer)
@@ -60,8 +60,8 @@ func runTaxCmd(year uint16, taxPayer tax.TaxPayer) error {
 	prt.Println("")
 
 	// FICA Tax
-	ficaTaxSystem, ok := tax.FicaRegistry[year]
-	if !ok {
+	ficaTaxSystem, err := tax.GetFicaTaxSystem(year)
+	if err != nil {
 		panic("FICA tax system not found")
 	}
 
