@@ -22,14 +22,14 @@ type UsTaxSystem struct {
 }
 
 func (sys UsTaxSystem) CalculateTax(p TaxPayer) TaxResult {
-	adjustedGrossIncome := p.Income
-	for _, adj := range p.Adjustments {
-		adjustedGrossIncome = adj.Adjust(adjustedGrossIncome)
-	}
-
 	config, ok := sys.FilingConfigs[p.FilingStatus]
 	if !ok {
 		panic("Filing status not found.")
+	}
+
+	adjustedGrossIncome := p.Income
+	for _, adj := range p.Adjustments {
+		adjustedGrossIncome = adj.Adjust(adjustedGrossIncome)
 	}
 
 	taxableIncome := adjustedGrossIncome.Sub(config.StandardDeduction)
