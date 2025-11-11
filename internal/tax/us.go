@@ -9,14 +9,6 @@ type UsFilingConfig struct {
 	Schedule          ProgressiveTax  `json:"schedule"`
 }
 
-// type UsTaxSystemResult struct {
-// 	StandardDeduction   decimal.Decimal
-// 	AdjustedGrossIncome decimal.Decimal
-// 	TaxableIncome       decimal.Decimal
-// 	MarginalTaxRate     decimal.Decimal
-// 	TaxesDue            decimal.Decimal
-// }
-
 type UsTaxSystem struct {
 	FilingConfigs map[FilingStatus]UsFilingConfig `json:"filing_configs"`
 }
