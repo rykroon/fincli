@@ -1,16 +1,9 @@
 package tax
 
-import "github.com/shopspring/decimal"
-
 // https://www.nj.gov/treasury/taxation/njit5.shtml
 
 type NjTaxSystem struct {
 	FilingConfigs map[FilingStatus]ProgressiveTax `json:"filing_configs"`
-}
-
-type NjTaxResult struct {
-	MarginalTaxRate decimal.Decimal
-	TaxesDue        decimal.Decimal
 }
 
 func (sys NjTaxSystem) CalculateTax(p TaxPayer) TaxResult {
