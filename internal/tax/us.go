@@ -4,6 +4,8 @@ import (
 	"github.com/shopspring/decimal"
 )
 
+// https://www.eitc.irs.gov/publications/p17#d0e50262
+
 type UsFilingConfig struct {
 	StandardDeduction decimal.Decimal `json:"standard_deduction"`
 	Schedule          ProgressiveTax  `json:"schedule"`
