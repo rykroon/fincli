@@ -46,7 +46,7 @@ func (c ProgressiveTax) CalculateTax(income decimal.Decimal) decimal.Decimal {
 
 		tax = tax.Add(b.CalculateTax(income))
 
-		if income.LessThan(b.Upper) {
+		if income.LessThanOrEqual(b.Upper) {
 			break
 		}
 	}
@@ -60,7 +60,7 @@ type Bracket struct {
 }
 
 func (b Bracket) CalculateTax(income decimal.Decimal) decimal.Decimal {
-	if income.LessThan(b.Lower) {
+	if income.LessThanOrEqual(b.Lower) {
 		return decimal.Zero
 	}
 	upper := decimal.Min(income, b.Upper)
