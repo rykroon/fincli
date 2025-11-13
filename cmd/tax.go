@@ -57,13 +57,16 @@ func NewTaxCmd() *cobra.Command {
 
 func runTaxCmd(taxPayer tax.TaxPayer, systems []tax.TaxSystem) {
 	prt.Printf("Gross Income: $%.2v\n", taxPayer.Income)
+	prt.Printf("Filing Status: %s\n", taxPayer.FilingStatus)
 	prt.Println("")
 
-	// totalTaxes := decimal.Zero
+	totalTaxes := decimal.Zero
 	oneHundred := decimal.NewFromInt(100)
 
 	for _, system := range systems {
 		result := system.CalculateTax(taxPayer)
+		totalTaxes = totalTaxes.Add(result.Taxes)
+
 		prt.Println(result.Name)
 		for _, stat := range result.Stats {
 			switch stat.Type {
@@ -73,11 +76,8 @@ func runTaxCmd(taxPayer tax.TaxPayer, systems []tax.TaxSystem) {
 				prt.Printf("  %-22s: %.2v%%\n", stat.Name, stat.Value.Mul(oneHundred))
 			}
 		}
-
-		prt.Printf("  %-22s: $%.2v\n", "Taxes Due", result.Taxes)
-		effectiveTaxRate := result.Taxes.Div(taxPayer.Income)
-		prt.Printf("  %-22s: %.2v%%\n", "Effective Tax Rate", effectiveTaxRate.Mul(oneHundred))
 		prt.Println("")
 	}
 
+	prt.Printf("Total Taxes: $%.2v\n", totalTaxes)
 }

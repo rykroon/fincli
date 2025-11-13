@@ -35,6 +35,8 @@ func (sys UsTaxSystem) CalculateTax(p TaxPayer) TaxResult {
 	result.AddStat("Standard Deduction", config.StandardDeduction, "currency")
 	result.AddStat("Taxable Income", taxableIncome, "currency")
 	result.AddStat("Marginal Tax Rate", marginalBracket.Rate, "percent")
+	result.AddStat("Effective Tax Rate", taxesDue.Div(p.Income), "percent")
+	result.AddStat("Taxes", taxesDue, "currency")
 
 	return result
 }
