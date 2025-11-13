@@ -60,18 +60,23 @@ func runTaxCmd(taxPayer tax.TaxPayer, systems []tax.TaxSystem) {
 	prt.Println("")
 
 	// totalTaxes := decimal.Zero
+	oneHundred := decimal.NewFromInt(100)
 
 	for _, system := range systems {
 		result := system.CalculateTax(taxPayer)
 		prt.Println(result.Name)
 		for _, stat := range result.Stats {
-			prt.Printf("  %-24s: $%.2v\n", stat.Name, stat.Value)
+			switch stat.Type {
+			case "currency":
+				prt.Printf("  %-22s: $%.2v\n", stat.Name, stat.Value)
+			case "percent":
+				prt.Printf("  %-22s: %.2v%%\n", stat.Name, stat.Value.Mul(oneHundred))
+			}
 		}
 
-		prt.Printf("  %-24s: $%.2v\n", "Taxes Due", result.TaxesDue)
-		oneHundred := decimal.NewFromInt(100)
-		effectiveTaxRate := result.TaxesDue.Div(taxPayer.Income)
-		prt.Printf("  %-24s: %.2v%%\n", "Effective Tax Rate", effectiveTaxRate.Mul(oneHundred))
+		prt.Printf("  %-22s: $%.2v\n", "Taxes Due", result.Taxes)
+		effectiveTaxRate := result.Taxes.Div(taxPayer.Income)
+		prt.Printf("  %-22s: %.2v%%\n", "Effective Tax Rate", effectiveTaxRate.Mul(oneHundred))
 		prt.Println("")
 	}
 

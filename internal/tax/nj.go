@@ -20,6 +20,6 @@ func (sys NjTaxSystem) CalculateTax(p TaxPayer) TaxResult {
 
 	taxesDue := taxCalc.CalculateTax(adjustedGrossIncome)
 	result := NewTaxResult("NJ Tax", taxesDue)
-	result.AddStat("Marginal Tax Rate", taxCalc.GetMarginalBracket(p.Income).Rate)
+	result.AddStat("Marginal Tax Rate", taxCalc.GetMarginalBracket(p.Income).Rate, "percent")
 	return result
 }

@@ -12,7 +12,7 @@ func (s FicaTaxSystem) CalculateTax(p TaxPayer) TaxResult {
 	total := ssTaxDue.Add(mcTaxDue)
 
 	result := NewTaxResult("FICA Tax", total)
-	result.AddStat("Social Security Tax Due", ssTaxDue)
-	result.AddStat("Medicare Tax Due", mcTaxDue)
+	result.AddStat("Social Security Tax", ssTaxDue, "currency")
+	result.AddStat("Medicare Tax", mcTaxDue, "currency")
 	return result
 }
