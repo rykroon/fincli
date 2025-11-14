@@ -14,19 +14,19 @@ import (
 )
 
 func NewMortgageCmd() *cobra.Command {
-	var af amortizeFlags
+	var mf mortgageFlags
 
 	cmd := &cobra.Command{
 		Use:   "mortgage",
 		Short: "Calculate a mortgage",
 		Run: func(cmd *cobra.Command, args []string) {
-			runMortgageCmd(af)
+			runMortgageCmd(mf)
 		},
 	}
 
 	flagx.DecimalVarP(
 		cmd.Flags(),
-		&af.Principal,
+		&mf.Principal,
 		"principal",
 		"p",
 		decimal.Zero,
@@ -35,14 +35,14 @@ func NewMortgageCmd() *cobra.Command {
 
 	flagx.PercentVarP(
 		cmd.Flags(),
-		&af.Rate,
+		&mf.Rate,
 		"rate",
 		"r",
 		decimal.Zero,
 		"Annual interest rate",
 	)
 
-	cmd.Flags().Uint16VarP(&af.Years, "years", "y", 30, "Loan term in years")
+	cmd.Flags().Uint16VarP(&mf.Years, "years", "y", 30, "Loan term in years")
 
 	cmd.MarkFlagRequired("principal")
 	cmd.MarkFlagRequired("rate")
@@ -50,7 +50,7 @@ func NewMortgageCmd() *cobra.Command {
 	// optional flags
 	flagx.DecimalVar(
 		cmd.Flags(),
-		&af.ExtraMonthlyPayment,
+		&mf.ExtraMonthlyPayment,
 		"extra-monthly",
 		decimal.Zero,
 		"Extra monthly payment",
@@ -58,21 +58,21 @@ func NewMortgageCmd() *cobra.Command {
 
 	flagx.DecimalVar(
 		cmd.Flags(),
-		&af.ExtraAnnualPayment,
+		&mf.ExtraAnnualPayment,
 		"extra-annual",
 		decimal.Zero,
 		"Extra annual payment",
 	)
 
 	cmd.Flags().BoolVar(
-		&af.MonthlySchedule,
+		&mf.MonthlySchedule,
 		"monthly",
 		false,
 		"Print the monthly amortization schedule",
 	)
 
 	cmd.Flags().BoolVar(
-		&af.AnnualSchedule,
+		&mf.AnnualSchedule,
 		"annual",
 		false,
 		"Print the annual amortization schedule",
@@ -87,7 +87,7 @@ func NewMortgageCmd() *cobra.Command {
 
 }
 
-type amortizeFlags struct {
+type mortgageFlags struct {
 	Principal           decimal.Decimal
 	Rate                decimal.Decimal
 	Years               uint16
@@ -97,13 +97,13 @@ type amortizeFlags struct {
 	AnnualSchedule      bool
 }
 
-func (af amortizeFlags) HasExtraPayment() bool {
-	return (af.ExtraAnnualPayment.GreaterThan(decimal.Zero) ||
-		af.ExtraMonthlyPayment.GreaterThan(decimal.Zero))
+func (mf mortgageFlags) HasExtraPayment() bool {
+	return (mf.ExtraAnnualPayment.GreaterThan(decimal.Zero) ||
+		mf.ExtraMonthlyPayment.GreaterThan(decimal.Zero))
 }
 
-func runMortgageCmd(af amortizeFlags) {
-	loan := mortgage.NewLoan(af.Principal, af.Rate, af.Years)
+func runMortgageCmd(mf mortgageFlags) {
+	loan := mortgage.NewLoan(mf.Principal, mf.Rate, mf.Years)
 	sched := mortgage.CalculateSchedule(loan)
 	monthlyPayment := mortgage.CalculateMonthlyPayment(
 		loan.Principal, loan.MonthlyRate(), loan.NumPeriods(),
@@ -125,9 +125,9 @@ func runMortgageCmd(af amortizeFlags) {
 	result += prt.Sprintf("Pay off in %v years and %v months\n", years, months)
 	result += prt.Sprintln("")
 
-	if af.AnnualSchedule {
+	if mf.AnnualSchedule {
 		result += printAnnualSchedule(sched)
-	} else if af.MonthlySchedule {
+	} else if mf.MonthlySchedule {
 		result += printMonthlySchedule(sched)
 	} else {
 		fmt.Println(result)
