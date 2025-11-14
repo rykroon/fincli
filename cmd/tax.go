@@ -11,14 +11,15 @@ func NewTaxCmd() *cobra.Command {
 	var income decimal.Decimal
 	var filingStatus string
 	var year uint16
-	var adjustments decimal.Decimal
+	// var adjustments decimal.Decimal
+	var f01k decimal.Decimal
 	var state string
 
 	runE := func(cmd *cobra.Command, args []string) error {
 		taxPayer := tax.NewTaxPayer(
 			income,
 			tax.FilingStatus(filingStatus),
-			tax.Adjustment{Label: "Adjustments", Amount: adjustments},
+			tax.Adjustment{Label: "401k Contribution", Amount: f01k},
 		)
 
 		systemNames := []string{"us", "fica"}
@@ -50,7 +51,8 @@ func NewTaxCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&filingStatus, "filing-status", "f", "single", "Your filing status")
 	cmd.Flags().Uint16VarP(&year, "year", "y", 2025, "Tax year")
 	cmd.Flags().StringVar(&state, "state", "", "State income tax")
-	flagx.DecimalVar(cmd.Flags(), &adjustments, "adjustments", decimal.Zero, "adjustments (ex: Retirement Contributions, Student Loan Interest)")
+	// flagx.DecimalVar(cmd.Flags(), &adjustments, "adjustments", decimal.Zero, "adjustments (ex: Retirement Contributions, Student Loan Interest)")
+	flagx.DecimalVar(cmd.Flags(), &f01k, "401k", decimal.Zero, "401k Contributions")
 	cmd.MarkFlagRequired("income")
 	return cmd
 }
