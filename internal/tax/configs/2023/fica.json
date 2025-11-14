@@ -1,0 +1,9 @@
+{
+    "social_security_tax": {
+        "upper": 160200,
+        "rate": 0.062
+    },
+    "medicare_tax": {
+        "rate": 0.0145
+    }
+}
