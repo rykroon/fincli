@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/rykroon/fincli/cmd/mortgage"
 	"github.com/rykroon/fincli/internal/flagx"
 	"github.com/rykroon/fincli/internal/fmtx"
 	"github.com/spf13/cobra"
@@ -41,7 +40,7 @@ func NewRootCmd() *cobra.Command {
 		PersistentPreRunE: persistentPreRunE,
 	}
 
-	cmd.AddCommand(mortgage.NewMortgageCmd())
+	cmd.AddCommand(NewMortgageCmd())
 	cmd.AddCommand(NewHomeCmd())
 	cmd.AddCommand(NewFireCmd())
 	cmd.AddCommand(NewTaxCmd())

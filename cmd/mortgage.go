@@ -1,4 +1,4 @@
-package mortgage
+package cmd
 
 import (
 	"fmt"
@@ -13,14 +13,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewAmortizeCmd() *cobra.Command {
+func NewMortgageCmd() *cobra.Command {
 	var af amortizeFlags
 
 	cmd := &cobra.Command{
-		Use:   "amortize",
-		Short: "Print an Amortization Schedule",
+		Use:   "mortgage",
+		Short: "Calculate a mortgage",
 		Run: func(cmd *cobra.Command, args []string) {
-			runAmortizeCmd(af)
+			runMortgageCmd(af)
 		},
 	}
 
@@ -65,11 +65,20 @@ func NewAmortizeCmd() *cobra.Command {
 	)
 
 	cmd.Flags().BoolVar(
+		&af.MonthlySchedule,
+		"monthly",
+		false,
+		"Print the monthly amortization schedule",
+	)
+
+	cmd.Flags().BoolVar(
 		&af.AnnualSchedule,
 		"annual",
 		false,
 		"Print the annual amortization schedule",
 	)
+
+	cmd.MarkFlagsMutuallyExclusive("annual", "monthly")
 
 	cmd.Flags().SortFlags = false
 	cmd.Flags().PrintDefaults()
@@ -93,7 +102,7 @@ func (af amortizeFlags) HasExtraPayment() bool {
 		af.ExtraMonthlyPayment.GreaterThan(decimal.Zero))
 }
 
-func runAmortizeCmd(af amortizeFlags) {
+func runMortgageCmd(af amortizeFlags) {
 	loan := mortgage.NewLoan(af.Principal, af.Rate, af.Years)
 	sched := mortgage.CalculateSchedule(loan)
 	monthlyPayment := mortgage.CalculateMonthlyPayment(
@@ -118,8 +127,11 @@ func runAmortizeCmd(af amortizeFlags) {
 
 	if af.AnnualSchedule {
 		result += printAnnualSchedule(sched)
-	} else {
+	} else if af.MonthlySchedule {
 		result += printMonthlySchedule(sched)
+	} else {
+		fmt.Println(result)
+		return
 	}
 
 	// pipe result into pager
