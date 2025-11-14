@@ -1,6 +1,10 @@
 package mortgage
 
 import (
+	"fmt"
+	"io"
+	"os"
+	"os/exec"
 	"strings"
 
 	"github.com/rykroon/fincli/internal/flagx"
@@ -96,31 +100,58 @@ func runAmortizeCmd(af amortizeFlags) {
 		loan.Principal, loan.MonthlyRate(), loan.NumPeriods(),
 	)
 
-	prt.Printf("Monthly Payment: $%.2v\n", monthlyPayment)
+	result := ""
+
+	result += prt.Sprintf("Monthly Payment: $%.2v\n", monthlyPayment)
 	if !monthlyPayment.Round(2).Equal(sched.AverageMonthlyPayment().Round(2)) {
 		prt.Printf("Average Monthly Payment: $%.2v\n", sched.AverageMonthlyPayment())
 	}
 
-	prt.Printf("Total Amount Paid: $%.2v\n", sched.TotalAmount)
-	prt.Printf("Total Interest Paid: $%.2v\n", sched.TotalInterest)
+	result += prt.Sprintf("Total Amount Paid: $%.2v\n", sched.TotalAmount)
+	result += prt.Sprintf("Total Interest Paid: $%.2v\n", sched.TotalInterest)
 
 	twelve := decimal.NewFromInt(12)
 	years := sched.NumPeriods().Div(twelve)
 	months := sched.NumPeriods().Mod(twelve)
-	prt.Printf("Pay off in %v years and %v months\n", years, months)
-	prt.Println("")
+	result += prt.Sprintf("Pay off in %v years and %v months\n", years, months)
+	result += prt.Sprintln("")
 
 	if af.AnnualSchedule {
-		printAnnualSchedule(sched)
+		result += printAnnualSchedule(sched)
 	} else {
-		printMonthlySchedule(sched)
+		result += printMonthlySchedule(sched)
 	}
+
+	// pipe result into pager
+
+	pager := os.Getenv("PAGER")
+	if pager == "" {
+		pager = "less" // fallback to less
+	}
+
+	cmd := exec.Command(pager)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	// We pipe our output *into* the pager's stdin
+	pagerIn, _ := cmd.StdinPipe()
+
+	if err := cmd.Start(); err != nil {
+		fmt.Println(result) // fallback if pager fails
+		return
+	}
+
+	io.WriteString(pagerIn, result)
+	pagerIn.Close()
+
+	cmd.Wait()
 }
 
-func printMonthlySchedule(schedule mortgage.Schedule) {
+func printMonthlySchedule(schedule mortgage.Schedule) string {
+	result := ""
 	for _, payment := range schedule.Payments {
 		if payment.Period%12 == 1 {
-			prt.Printf(
+			result += prt.Sprintf(
 				"%-6s %-12s %-12s %-12s %-12s\n",
 				"Month",
 				"Principal",
@@ -128,10 +159,10 @@ func printMonthlySchedule(schedule mortgage.Schedule) {
 				"Total",
 				"Balance",
 			)
-			prt.Println(strings.Repeat("-", 60))
+			result += prt.Sprintln(strings.Repeat("-", 60))
 		}
 
-		prt.Printf(
+		result += prt.Sprintf(
 			"%-6d $%-11.2v $%-11.2v $%-11.2v $%-11.2v\n",
 			payment.Period,
 			payment.Principal,
@@ -141,13 +172,15 @@ func printMonthlySchedule(schedule mortgage.Schedule) {
 		)
 
 		if payment.Period%12 == 0 {
-			prt.Printf("\t--- End of Year %d ---\n\n", payment.Period/12)
+			result += prt.Sprintf("\t--- End of Year %d ---\n\n", payment.Period/12)
 		}
 	}
+	return result
 }
 
-func printAnnualSchedule(schedule mortgage.Schedule) {
-	prt.Printf(
+func printAnnualSchedule(schedule mortgage.Schedule) string {
+	result := ""
+	result += prt.Sprintf(
 		"%-6s %-12s %-12s %-12s %-12s\n",
 		"Year",
 		"Principal",
@@ -155,7 +188,7 @@ func printAnnualSchedule(schedule mortgage.Schedule) {
 		"Total",
 		"Balance",
 	)
-	prt.Println(strings.Repeat("-", 60))
+	result += prt.Sprintln(strings.Repeat("-", 60))
 	annualPrincipal := decimal.Zero
 	annualInterest := decimal.Zero
 	annualPayments := decimal.Zero
@@ -166,7 +199,7 @@ func printAnnualSchedule(schedule mortgage.Schedule) {
 		annualPayments = annualPayments.Add(payment.Total())
 
 		if payment.Period%12 == 0 {
-			prt.Printf(
+			result += prt.Sprintf(
 				"%-6d $%-11.2v $%-11.2v $%-11.2v $%-11.2v\n",
 				payment.Period/12,
 				annualPrincipal,
@@ -179,4 +212,5 @@ func printAnnualSchedule(schedule mortgage.Schedule) {
 			annualPayments = decimal.Zero
 		}
 	}
+	return result
 }
