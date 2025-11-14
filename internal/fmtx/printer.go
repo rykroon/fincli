@@ -22,6 +22,14 @@ func (p NumberPrinter) Println(a ...any) (int, error) {
 	return fmt.Println(a...)
 }
 
+func (p NumberPrinter) Sprintf(format string, a ...any) string {
+	return fmt.Sprintf(format, p.transformArgs(a)...)
+}
+
+func (p NumberPrinter) Sprintln(a ...any) string {
+	return fmt.Sprintln(a...)
+}
+
 // Wrap decimal.Decimal in DecFmt with separator.
 func (p NumberPrinter) transformArgs(args []any) []any {
 	out := make([]any, 0, len(args))
