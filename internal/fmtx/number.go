@@ -2,6 +2,7 @@ package fmtx
 
 import (
 	"fmt"
+	"strings"
 )
 
 type FormattableNumber interface {
@@ -11,11 +12,15 @@ type FormattableNumber interface {
 }
 
 func FormatNumber(num FormattableNumber, state fmt.State) string {
-	var sign string
+	sign := ""
 	if num.IsNegative() {
 		sign = "-"
 	} else {
-		sign = GetPositiveSign(state)
+		if state.Flag('+') { // always print + sign
+			sign = "+"
+		} else if state.Flag(' ') { // leave space for sign
+			sign = " "
+		}
 	}
 
 	numStr := num.IntPart()
@@ -23,19 +28,33 @@ func FormatNumber(num FormattableNumber, state fmt.State) string {
 	if !ok {
 		precision = -1
 	}
+
 	fracPart := num.FracPart(precision)
 	if fracPart != "" {
 		numStr += fracPart
 	}
 
 	strLen := len(sign) + len(numStr)
-	padding := BuildPadding(state, strLen)
+	padding := buildPadding(state, strLen)
 
-	if LeftAlign(state) {
+	if state.Flag('-') { // left align
 		return sign + numStr + padding
-	} else if ZeroPad(state) {
+	} else if state.Flag('0') { // zero pad
 		return sign + padding + numStr
 	} else {
-		return padding + string(sign) + numStr
+		return padding + sign + numStr
 	}
+}
+
+func buildPadding(state fmt.State, strLen int) string {
+	w, ok := state.Width()
+	if !ok || strLen > w {
+		return ""
+	}
+	padLen := w - strLen
+	padChar := " "
+	if state.Flag('0') && !state.Flag('-') {
+		padChar = "0"
+	}
+	return strings.Repeat(padChar, padLen)
 }
