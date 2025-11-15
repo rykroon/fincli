@@ -31,7 +31,7 @@ func (sys UsTaxSystem) CalculateTax(p TaxPayer) TaxResult {
 	taxesDue := config.Schedule.CalculateTax(taxableIncome)
 
 	result := NewTaxResult("Federal Tax", taxesDue)
-	result.AddStat("Adjusted Gross Income", adjustedGrossIncome, "currency")
+	result.AddStat("Adj Gross Income", adjustedGrossIncome, "currency")
 	result.AddStat("Standard Deduction", config.StandardDeduction, "currency")
 	result.AddStat("Taxable Income", taxableIncome, "currency")
 	result.AddStat("Marginal Tax Rate", marginalBracket.Rate, "percent")
