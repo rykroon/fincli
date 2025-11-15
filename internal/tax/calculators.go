@@ -29,7 +29,7 @@ type ProgressiveTax struct {
 
 func (t ProgressiveTax) GetMarginalBracket(income decimal.Decimal) Bracket {
 	for _, bracket := range t.Brackets {
-		if bracket.Lower.LessThan(income) && income.LessThan(bracket.Upper) {
+		if bracket.Lower.LessThanOrEqual(income) && income.LessThan(bracket.Upper) {
 			return bracket
 		}
 	}
