@@ -40,6 +40,6 @@ func NewFireCmd() *cobra.Command {
 
 func runFireCmd(annualExpenses, swr decimal.Decimal) {
 	fireNumber := annualExpenses.Div(swr)
-	prt.Printf("FIRE Number: $%.2v\n", fireNumber)
-	prt.Printf("Safe Withdrawl Rate: %.2v%%\n", swr.Mul(decimal.NewFromInt(100)))
+	prt.Printf("%-20s $%13.2v\n", "FIRE Number:", fireNumber)
+	prt.Printf("%-20s %13.2v%%\n", "Safe Withdrawl Rate:", swr.Mul(decimal.NewFromInt(100)))
 }

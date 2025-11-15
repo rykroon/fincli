@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"strings"
+
 	"github.com/rykroon/fincli/internal/flagx"
 	"github.com/rykroon/fincli/internal/tax"
 	"github.com/shopspring/decimal"
@@ -70,6 +72,7 @@ func runTaxCmd(taxPayer tax.TaxPayer, systems []tax.TaxSystem) {
 		totalTaxes = totalTaxes.Add(result.Taxes)
 
 		prt.Println(result.Name)
+		prt.Println(strings.Repeat("-", 20))
 		for _, stat := range result.Stats {
 			switch stat.Type {
 			case "currency":
@@ -82,6 +85,7 @@ func runTaxCmd(taxPayer tax.TaxPayer, systems []tax.TaxSystem) {
 	}
 
 	prt.Println("Total")
+	prt.Println(strings.Repeat("-", 20))
 	prt.Printf("%-20s $%12.2v\n", "Taxes:", totalTaxes)
 	prt.Printf("%-20s %12.2v%%\n", "Effective Tax Rate:", totalTaxes.Div(taxPayer.Income).Mul(oneHundred))
 	prt.Printf("%-20s $%12.2v\n", "Disposable Income:", taxPayer.Income.Sub(totalTaxes))

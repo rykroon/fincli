@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/rykroon/fincli/internal/flagx"
 	"github.com/rykroon/fincli/internal/mortgage"
 	"github.com/shopspring/decimal"
@@ -95,20 +98,31 @@ func NewHouseCmd() *cobra.Command {
 func runHouseCmd(hf houseFlags) {
 	oneHundred := decimal.NewFromInt(100)
 	// Print Summary
-	prt.Printf("Home Price: $%.2v\n", hf.Price)
-	prt.Printf("Down Payment (%v%%): $%.2v\n", hf.DownPaymentPercent.Mul(oneHundred), hf.DownPayment())
-	prt.Printf("Loan Amount: $%.2v\n", hf.LoanAmount())
+	prt.Printf("%-20s $%12.2v\n", "Home Price:", hf.Price)
+	prt.Printf("%-20s $%12.2v\n", "Loan Amount:", hf.LoanAmount())
 	prt.Println("")
 
 	// One-Time costs
-	prt.Println("--- One-Time costs ---")
-	prt.Printf("Closing Costs (%v%%): $%.2v\n", hf.ClosingPercent.Mul(oneHundred), hf.ClosingCosts())
+	prt.Println("One-Time costs")
+	prt.Println(strings.Repeat("-", 20))
+
+	prt.Printf(
+		"%-20s $%12.2v\n",
+		fmt.Sprintf("Down Payment (%v%%):", hf.DownPaymentPercent.Mul(oneHundred)),
+		hf.DownPayment(),
+	)
+	prt.Printf(
+		"%-20s $%12.2v\n",
+		fmt.Sprintf("Closing Costs (%v%%):", hf.ClosingPercent.Mul(oneHundred)),
+		hf.ClosingCosts(),
+	)
 	totalUpfront := decimal.Sum(hf.DownPayment(), hf.ClosingCosts())
-	prt.Printf("Total Upfront: $%.2v\n", totalUpfront)
+	prt.Printf("%-20s $%12.2v\n", "Total Upfront:", totalUpfront)
 	prt.Println("")
 
 	// monthly costs
-	prt.Println("--- Monthly Costs ---")
+	prt.Println("Monthly Costs")
+	prt.Println(strings.Repeat("-", 20))
 	p := hf.Price.Sub(hf.DownPayment())
 	twelve := decimal.NewFromInt(12)
 	i := hf.Rate.Div(twelve)
@@ -118,19 +132,19 @@ func runHouseCmd(hf houseFlags) {
 	monthlyInsurance := hf.AnnualInsurance.Div(twelve)
 	monthlyPMI := hf.LoanAmount().Mul(hf.PmiRate).Div(twelve)
 
-	prt.Printf("Mortgage Payment: $%.2v\n", monthlyMortgage)
-	prt.Printf("Property Tax: $%.2v\n", monthlyTaxes)
-	prt.Printf("Home Insurance: $%.2v\n", monthlyInsurance)
+	prt.Printf("%-20s $%12.2v\n", "Mortgage Payment:", monthlyMortgage)
+	prt.Printf("%-20s $%12.2v\n", "Property Tax:", monthlyTaxes)
+	prt.Printf("%-20s $%12.2v\n", "Home Insurance:", monthlyInsurance)
 	if hf.MonthlyHoa.GreaterThan(decimal.Zero) {
-		prt.Printf("HOA: $%.2v\n", hf.MonthlyHoa)
+		prt.Printf("%-20s $%12.2v\n", "HOA:", hf.MonthlyHoa)
 	}
 
 	if monthlyPMI.GreaterThan(decimal.Zero) {
-		prt.Printf("PMI: $%.2v\n", monthlyPMI)
+		prt.Printf("%-20s $%12.2v\n", "PMI:", monthlyPMI)
 	}
 
 	totalMonthlyCost := decimal.Sum(
 		monthlyMortgage, monthlyTaxes, monthlyInsurance, hf.MonthlyHoa, monthlyPMI,
 	)
-	prt.Printf("Total Monthly: $%.2v\n", totalMonthlyCost)
+	prt.Printf("%-20s $%12.2v\n", "Total Monthly:", totalMonthlyCost)
 }
