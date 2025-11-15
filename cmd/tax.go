@@ -73,13 +73,18 @@ func runTaxCmd(taxPayer tax.TaxPayer, systems []tax.TaxSystem) {
 		for _, stat := range result.Stats {
 			switch stat.Type {
 			case "currency":
-				prt.Printf("  %-22s: $%.2v\n", stat.Name, stat.Value)
+				prt.Printf("%-22s: $%11.2v\n", stat.Name, stat.Value)
 			case "percent":
-				prt.Printf("  %-22s: %.2v%%\n", stat.Name, stat.Value.Mul(oneHundred))
+				prt.Printf("%-22s: %12.2v%%\n", stat.Name, stat.Value.Mul(oneHundred))
 			}
 		}
 		prt.Println("")
 	}
 
-	prt.Printf("Total Taxes: $%.2v\n", totalTaxes)
+	prt.Println("Total")
+	prt.Printf("%-22s: $%11.2v\n", "Taxes", totalTaxes)
+	prt.Printf("%-22s: %12.2v%%\n", "Effective Tax Rate", totalTaxes.Div(taxPayer.Income).Mul(oneHundred))
+
+	// should disposable income exclude 401k contributions??
+	//prt.Printf("Disposable Income: $%.2v\n", taxPayer.Income.Sub(totalTaxes))
 }
