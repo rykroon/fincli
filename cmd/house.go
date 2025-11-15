@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type homeFlags struct {
+type houseFlags struct {
 	Price              decimal.Decimal
 	DownPaymentPercent decimal.Decimal
 	Rate               decimal.Decimal
@@ -19,24 +19,24 @@ type homeFlags struct {
 	MonthlyHoa         decimal.Decimal
 }
 
-func (hf homeFlags) DownPayment() decimal.Decimal {
+func (hf houseFlags) DownPayment() decimal.Decimal {
 	return hf.Price.Mul(hf.DownPaymentPercent)
 }
 
-func (hf homeFlags) LoanAmount() decimal.Decimal {
+func (hf houseFlags) LoanAmount() decimal.Decimal {
 	return hf.Price.Sub(hf.DownPayment())
 }
 
-func (hf homeFlags) ClosingCosts() decimal.Decimal {
+func (hf houseFlags) ClosingCosts() decimal.Decimal {
 	return hf.Price.Mul(hf.ClosingPercent)
 }
 
-func NewHomeCmd() *cobra.Command {
-	var hf homeFlags
+func NewHouseCmd() *cobra.Command {
+	var hf houseFlags
 
 	cmd := &cobra.Command{
-		Use:   "home",
-		Short: "Calculate the costs of purchasing a home.",
+		Use:   "house",
+		Short: "Calculate the costs of purchasing a house.",
 		Run: func(cmd *cobra.Command, args []string) {
 			runHouseCmd(hf)
 		},
@@ -92,7 +92,7 @@ func NewHomeCmd() *cobra.Command {
 	return cmd
 }
 
-func runHouseCmd(hf homeFlags) {
+func runHouseCmd(hf houseFlags) {
 	oneHundred := decimal.NewFromInt(100)
 	// Print Summary
 	prt.Printf("Home Price: $%.2v\n", hf.Price)
