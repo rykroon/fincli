@@ -5,21 +5,45 @@ import (
 )
 
 type PaymentStrategy interface {
-	NextPayment(loan Loan) decimal.Decimal
+	NextPayment(*Loan, *Schedule) decimal.Decimal
 }
 
 type DefaultStrategy struct{}
 
-func (s DefaultStrategy) NextPayment(loan Loan) decimal.Decimal {
+func NewDefaultStrategy() PaymentStrategy {
+	return DefaultStrategy{}
+}
+
+func (s DefaultStrategy) NextPayment(loan *Loan, sched *Schedule) decimal.Decimal {
 	return CalculateMonthlyPayment(loan.Principal, loan.MonthlyRate(), loan.NumPeriods())
 }
 
-type ExtraMonthlyPayment struct {
+type ExtraMonthlyStratgey struct {
 	extraPayment decimal.Decimal
 }
 
-func (s ExtraMonthlyPayment) NextPayment(loan Loan) decimal.Decimal {
+func NewExtraMonthlyStrategy(extraPayment decimal.Decimal) PaymentStrategy {
+	return ExtraMonthlyStratgey{extraPayment: extraPayment}
+}
+
+func (s ExtraMonthlyStratgey) NextPayment(loan *Loan, sched *Schedule) decimal.Decimal {
 	payment := CalculateMonthlyPayment(loan.Principal, loan.MonthlyRate(), loan.NumPeriods())
 	payment = payment.Add(s.extraPayment)
-	return payment
+	return decimal.Min(payment, sched.RemainingBalance())
+}
+
+type ExtraAnnualStratgey struct {
+	extraPayment decimal.Decimal
+}
+
+func NewExtraAnnualStrategy(extraPayment decimal.Decimal) PaymentStrategy {
+	return ExtraMonthlyStratgey{extraPayment: extraPayment}
+}
+
+func (s ExtraAnnualStratgey) NextPayment(loan *Loan, sched *Schedule) decimal.Decimal {
+	payment := CalculateMonthlyPayment(loan.Principal, loan.MonthlyRate(), loan.NumPeriods())
+	if len(sched.Payments)%12 == 0 {
+		payment = payment.Add(s.extraPayment)
+	}
+	return decimal.Min(payment, sched.RemainingBalance())
 }

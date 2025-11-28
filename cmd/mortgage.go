@@ -104,7 +104,13 @@ func (mf mortgageFlags) HasExtraPayment() bool {
 
 func runMortgageCmd(mf mortgageFlags) {
 	loan := mortgage.NewLoan(mf.Principal, mf.Rate, mf.Years)
-	sched := mortgage.CalculateSchedule(loan)
+	strategy := mortgage.NewDefaultStrategy()
+	if !mf.ExtraMonthlyPayment.IsZero() {
+		strategy = mortgage.NewExtraMonthlyStrategy(mf.ExtraMonthlyPayment)
+	} else if !mf.ExtraAnnualPayment.IsZero() {
+		strategy = mortgage.NewExtraAnnualStrategy(mf.ExtraAnnualPayment)
+	}
+	sched := mortgage.CalculateSchedule(loan, strategy)
 	monthlyPayment := mortgage.CalculateMonthlyPayment(
 		loan.Principal, loan.MonthlyRate(), loan.NumPeriods(),
 	)
@@ -116,13 +122,13 @@ func runMortgageCmd(mf mortgageFlags) {
 		prt.Printf("Average Monthly Payment: $%.2v\n", sched.AverageMonthlyPayment())
 	}
 
-	result += prt.Sprintf("Total Amount Paid: $%.2v\n", sched.TotalAmount)
+	result += prt.Sprintf("Total Amount Paid: $%.2v\n", sched.TotalAmount())
 	result += prt.Sprintf("Total Interest Paid: $%.2v\n", sched.TotalInterest)
 
 	twelve := decimal.NewFromInt(12)
 	years := sched.NumPeriods().Div(twelve)
 	months := sched.NumPeriods().Mod(twelve)
-	result += prt.Sprintf("Pay off in %v years and %v months\n", years, months)
+	result += prt.Sprintf("Pay off in %.0v years and %0v months\n", years, months)
 	result += prt.Sprintln("")
 
 	if mf.AnnualSchedule {
@@ -159,7 +165,7 @@ func runMortgageCmd(mf mortgageFlags) {
 	cmd.Wait()
 }
 
-func printMonthlySchedule(schedule mortgage.Schedule) string {
+func printMonthlySchedule(schedule *mortgage.Schedule) string {
 	result := ""
 	for _, payment := range schedule.Payments {
 		if payment.Period%12 == 1 {
@@ -190,7 +196,7 @@ func printMonthlySchedule(schedule mortgage.Schedule) string {
 	return result
 }
 
-func printAnnualSchedule(schedule mortgage.Schedule) string {
+func printAnnualSchedule(schedule *mortgage.Schedule) string {
 	result := ""
 	result += prt.Sprintf(
 		"%-6s %-12s %-12s %-12s %-12s\n",
@@ -205,15 +211,15 @@ func printAnnualSchedule(schedule mortgage.Schedule) string {
 	annualInterest := decimal.Zero
 	annualPayments := decimal.Zero
 
-	for _, payment := range schedule.Payments {
+	for idx, payment := range schedule.Payments {
 		annualPrincipal = annualPrincipal.Add(payment.Principal)
 		annualInterest = annualInterest.Add(payment.Interest)
 		annualPayments = annualPayments.Add(payment.Total())
 
-		if payment.Period%12 == 0 {
+		if payment.Period%12 == 0 || idx == len(schedule.Payments)-1 {
 			result += prt.Sprintf(
 				"%-6d $%-11.2v $%-11.2v $%-11.2v $%-11.2v\n",
-				payment.Period/12,
+				idx/12,
 				annualPrincipal,
 				annualInterest,
 				annualPayments,
