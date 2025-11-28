@@ -29,7 +29,7 @@ func NewExtraMonthlyStrategy(extraPayment decimal.Decimal) PaymentStrategy {
 func (s ExtraMonthlyStratgey) NextPayment(loan *Loan, sched *Schedule) decimal.Decimal {
 	payment := CalculateMonthlyPayment(loan.Principal, loan.MonthlyRate(), loan.NumPeriods())
 	payment = payment.Add(s.extraPayment)
-	return decimal.Min(payment, sched.RemainingBalance())
+	return payment
 }
 
 type ExtraAnnualStratgey struct {
@@ -37,7 +37,7 @@ type ExtraAnnualStratgey struct {
 }
 
 func NewExtraAnnualStrategy(extraPayment decimal.Decimal) PaymentStrategy {
-	return ExtraMonthlyStratgey{extraPayment: extraPayment}
+	return ExtraAnnualStratgey{extraPayment: extraPayment}
 }
 
 func (s ExtraAnnualStratgey) NextPayment(loan *Loan, sched *Schedule) decimal.Decimal {
@@ -45,5 +45,5 @@ func (s ExtraAnnualStratgey) NextPayment(loan *Loan, sched *Schedule) decimal.De
 	if len(sched.Payments)%12 == 0 {
 		payment = payment.Add(s.extraPayment)
 	}
-	return decimal.Min(payment, sched.RemainingBalance())
+	return payment
 }

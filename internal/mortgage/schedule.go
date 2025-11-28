@@ -44,9 +44,12 @@ func CalculateSchedule(loan *Loan, strategy PaymentStrategy) *Schedule {
 	schedule := NewSchedule(loan)
 	balance := loan.Principal
 	for period := 1; balance.Round(2).GreaterThan(decimal.Zero); period++ {
-		paymentAmount := strategy.NextPayment(loan, schedule)
 		interest := balance.Mul(loan.MonthlyRate())
+		paymentAmount := strategy.NextPayment(loan, schedule)
 		principal := paymentAmount.Sub(interest)
+		if principal.GreaterThan(balance) {
+			principal = balance
+		}
 		balance = balance.Sub(principal)
 		payment := NewPayment(period, principal, interest, balance)
 		schedule.appendPayment(payment)
