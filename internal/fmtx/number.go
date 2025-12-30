@@ -6,14 +6,14 @@ import (
 )
 
 type FormattableNumber interface {
-	IsNegative() bool
+	Sign() int
 	IntPart() string
 	FracPart(int) string
 }
 
 func FormatNumber(num FormattableNumber, state fmt.State) string {
 	sign := ""
-	if num.IsNegative() {
+	if num.Sign() < 0 {
 		sign = "-"
 	} else {
 		if state.Flag('+') { // always print + sign

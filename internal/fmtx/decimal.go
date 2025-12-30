@@ -17,8 +17,8 @@ func NewFormattableDecimal(d decimal.Decimal, sep rune) FormattableDecimal {
 	return FormattableDecimal{d, sep}
 }
 
-func (fd FormattableDecimal) IsNegative() bool {
-	return fd.value.IsNegative()
+func (fd FormattableDecimal) Sign() int {
+	return fd.value.Sign()
 }
 
 func (fd FormattableDecimal) IntPart() string {
