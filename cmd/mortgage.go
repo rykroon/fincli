@@ -20,21 +20,19 @@ func NewMortgageCmd() *cobra.Command {
 		},
 	}
 
-	flagx.DecimalVarP(
-		cmd.Flags(),
-		&mf.Principal,
+	mf.Principal = decimal.Zero
+	cmd.Flags().VarP(
+		flagx.NewDecimalFlag(&mf.Principal),
 		"principal",
 		"p",
-		decimal.Zero,
 		"The principal (loan amount)",
 	)
 
-	flagx.PercentVarP(
-		cmd.Flags(),
-		&mf.Rate,
+	mf.Rate = decimal.Zero
+	cmd.Flags().VarP(
+		flagx.NewDecimalFlag(&mf.Rate),
 		"rate",
 		"r",
-		decimal.Zero,
 		"Annual interest rate",
 	)
 
@@ -44,37 +42,35 @@ func NewMortgageCmd() *cobra.Command {
 	cmd.MarkFlagRequired("rate")
 
 	// optional flags
-	flagx.DecimalVar(
-		cmd.Flags(),
-		&mf.ExtraMonthlyPayment,
+	mf.ExtraMonthlyPayment = decimal.Zero
+	cmd.Flags().Var(
+		flagx.NewDecimalFlag(&mf.ExtraMonthlyPayment),
 		"extra-monthly",
-		decimal.Zero,
 		"Extra monthly payment",
 	)
 
-	flagx.DecimalVar(
-		cmd.Flags(),
-		&mf.ExtraAnnualPayment,
+	mf.ExtraAnnualPayment = decimal.Zero
+	cmd.Flags().Var(
+		flagx.NewDecimalFlag(&mf.ExtraAnnualPayment),
 		"extra-annual",
-		decimal.Zero,
 		"Extra annual payment",
 	)
 
 	cmd.Flags().BoolVar(
-		&mf.MonthlySchedule,
-		"monthly",
+		&mf.PrintMonthly,
+		"print-monthly",
 		false,
 		"Print the monthly amortization schedule",
 	)
 
 	cmd.Flags().BoolVar(
-		&mf.AnnualSchedule,
-		"annual",
+		&mf.PrintAnnual,
+		"print-annual",
 		false,
 		"Print the annual amortization schedule",
 	)
 
-	cmd.MarkFlagsMutuallyExclusive("annual", "monthly")
+	cmd.MarkFlagsMutuallyExclusive("print-annual", "print-monthly")
 
 	cmd.Flags().SortFlags = false
 	cmd.Flags().PrintDefaults()
@@ -89,8 +85,8 @@ type mortgageFlags struct {
 	Years               uint16
 	ExtraMonthlyPayment decimal.Decimal
 	ExtraAnnualPayment  decimal.Decimal
-	MonthlySchedule     bool
-	AnnualSchedule      bool
+	PrintMonthly        bool
+	PrintAnnual         bool
 }
 
 func (mf mortgageFlags) HasExtraPayment() bool {
@@ -125,9 +121,9 @@ func runMortgageCmd(mf mortgageFlags) {
 	prt.Printf("Pay off in %.0v years and %0v months\n", years, months)
 	prt.Println("")
 
-	if mf.AnnualSchedule {
+	if mf.PrintAnnual {
 		printAnnualSchedule(sched)
-	} else if mf.MonthlySchedule {
+	} else if mf.PrintMonthly {
 		printMonthlySchedule(sched)
 	}
 }

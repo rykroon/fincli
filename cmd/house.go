@@ -45,46 +45,49 @@ func NewHouseCmd() *cobra.Command {
 		},
 	}
 
-	flagx.DecimalVarP(cmd.Flags(), &hf.Price, "price", "p", decimal.Zero, "Home price")
+	hf.Price = decimal.Zero
+	cmd.Flags().VarP(flagx.NewDecimalFlag(&hf.Price), "price", "p", "Home price")
 
-	flagx.PercentVarP(
-		cmd.Flags(),
-		&hf.DownPaymentPercent,
+	hf.DownPaymentPercent = decimal.NewFromFloat(.2)
+	cmd.Flags().VarP(
+		flagx.NewPercentFlag(&hf.DownPaymentPercent),
 		"down",
 		"d",
-		decimal.NewFromFloat(.2),
 		"Down payment percent",
 	)
 
-	flagx.PercentVarP(
-		cmd.Flags(), &hf.Rate, "rate", "r", decimal.Zero, "Mortgage interest rate",
+	hf.Rate = decimal.Zero
+	cmd.Flags().VarP(
+		flagx.NewPercentFlag(&hf.Rate), "rate", "r", "Mortgage interest rate",
 	)
 
 	cmd.Flags().Uint16VarP(&hf.Years, "years", "y", 30, "Mortgage term in years")
 
-	flagx.PercentVar(
-		cmd.Flags(),
-		&hf.ClosingPercent,
+	hf.ClosingPercent = decimal.NewFromFloat(.03)
+	cmd.Flags().Var(
+		flagx.NewPercentFlag(&hf.ClosingPercent),
 		"closing-percent",
-		decimal.NewFromFloat(.03),
 		"Estimated closing costs as a percent",
 	)
 
-	flagx.DecimalVarP(
-		cmd.Flags(), &hf.AnnualTax, "taxes", "t", decimal.Zero, "Annual property taxes",
+	hf.AnnualTax = decimal.Zero
+	cmd.Flags().VarP(
+		flagx.NewDecimalFlag(&hf.AnnualTax), "taxes", "t", "Annual property taxes",
 	)
 
-	flagx.DecimalVarP(
-		cmd.Flags(),
-		&hf.AnnualInsurance,
+	hf.AnnualInsurance = decimal.Zero
+	cmd.Flags().VarP(
+		flagx.NewDecimalFlag(&hf.AnnualInsurance),
 		"insurance",
 		"i",
-		decimal.Zero,
 		"Annual homeowners insurance",
 	)
 
-	flagx.PercentVar(cmd.Flags(), &hf.PmiRate, "pmi", decimal.Zero, "PMI rate")
-	flagx.DecimalVar(cmd.Flags(), &hf.MonthlyHoa, "hoa", decimal.Zero, "Monthly HOA fee")
+	hf.PmiRate = decimal.Zero
+	cmd.Flags().Var(flagx.NewPercentFlag(&hf.PmiRate), "pmi", "PMI rate")
+
+	hf.MonthlyHoa = decimal.Zero
+	cmd.Flags().Var(flagx.NewDecimalFlag(&hf.MonthlyHoa), "hoa", "Monthly HOA fee")
 
 	cmd.MarkFlagRequired("price")
 	cmd.MarkFlagRequired("rate")

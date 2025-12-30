@@ -7,26 +7,30 @@ import (
 )
 
 func NewFireCmd() *cobra.Command {
-	var annualExpenses decimal.Decimal
-	var safeWithdrawlRate decimal.Decimal
+	annualExpenses := decimal.Zero
+	safeWithdrawlRate := decimal.NewFromFloat(.04)
 
 	cmd := &cobra.Command{
 		Use:   "fire",
 		Short: "Calculate your FIRE number.",
 		Run: func(cmd *cobra.Command, args []string) {
-			runFireCmd(annualExpenses, safeWithdrawlRate)
+			fireNumber := annualExpenses.Div(safeWithdrawlRate)
+			prt.Printf("%-20s $%13.2v\n", "FIRE Number:", fireNumber)
+			prt.Printf(
+				"%-20s %13.2v%%\n",
+				"Safe Withdrawl Rate:",
+				safeWithdrawlRate.Mul(decimal.NewFromInt(100)),
+			)
 		},
 	}
 
-	flagx.DecimalVarP(
-		cmd.Flags(), &annualExpenses, "expenses", "e", decimal.Zero, "Annual expenses.",
+	cmd.Flags().VarP(
+		flagx.NewDecimalFlag(&annualExpenses), "expenses", "e", "Annual expenses.",
 	)
 
-	flagx.PercentVar(
-		cmd.Flags(),
-		&safeWithdrawlRate,
+	cmd.Flags().Var(
+		flagx.NewPercentFlag(&safeWithdrawlRate),
 		"swr",
-		decimal.NewFromFloat(.04),
 		"Safe withdrawl rate.",
 	)
 
@@ -36,10 +40,4 @@ func NewFireCmd() *cobra.Command {
 	cmd.Flags().PrintDefaults()
 
 	return cmd
-}
-
-func runFireCmd(annualExpenses, swr decimal.Decimal) {
-	fireNumber := annualExpenses.Div(swr)
-	prt.Printf("%-20s $%13.2v\n", "FIRE Number:", fireNumber)
-	prt.Printf("%-20s %13.2v%%\n", "Safe Withdrawl Rate:", swr.Mul(decimal.NewFromInt(100)))
 }

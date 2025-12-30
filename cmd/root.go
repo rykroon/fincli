@@ -44,6 +44,8 @@ func NewRootCmd() *cobra.Command {
 	cmd.AddCommand(NewHouseCmd())
 	cmd.AddCommand(NewFireCmd())
 	cmd.AddCommand(NewTaxCmd())
-	flagx.Rune(cmd.PersistentFlags(), "sep", 0, "thousands separator")
+
+	sep := rune(0)
+	cmd.PersistentFlags().Var(flagx.NewRuneFlag(&sep), "sep", "thousands separator")
 	return cmd
 }

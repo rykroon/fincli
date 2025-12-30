@@ -4,47 +4,21 @@ import (
 	"strings"
 
 	"github.com/shopspring/decimal"
-	"github.com/spf13/pflag"
 )
 
-type percentValue decimal.Decimal
-
-func newpercentValue(val decimal.Decimal, p *decimal.Decimal) *percentValue {
-	*p = val
-	return (*percentValue)(p)
-}
-
-func (pv *percentValue) Set(s string) error {
-	s = strings.ReplaceAll(s, "_", "")
-	d, err := decimal.NewFromString(s)
-	if err != nil {
-		return err
+func NewPercentFlag(p *decimal.Decimal) *Flag[decimal.Decimal] {
+	return &Flag[decimal.Decimal]{
+		ptr:        p,
+		type_:      "percent",
+		stringFunc: func(v decimal.Decimal) string { return v.String() },
+		setFunc: func(s string, p *decimal.Decimal) error {
+			s = strings.ReplaceAll(s, "_", "")
+			v, err := decimal.NewFromString(s)
+			if err != nil {
+				return err
+			}
+			*p = v.Div(decimal.NewFromInt(100))
+			return nil
+		},
 	}
-
-	*pv = percentValue(d.Div(decimal.NewFromInt(100)))
-	return nil
-}
-
-func (pv percentValue) Type() string { return "percent" }
-
-func (pv percentValue) String() string {
-	return decimal.Decimal(pv).Mul(decimal.NewFromInt(100)).String()
-}
-
-func PercentVarP(f *pflag.FlagSet, p *decimal.Decimal, name, shorthand string, value decimal.Decimal, usage string) {
-	f.VarP(newpercentValue(value, p), name, shorthand, usage)
-}
-
-func PercentVar(f *pflag.FlagSet, p *decimal.Decimal, name string, value decimal.Decimal, usage string) {
-	PercentVarP(f, p, name, "", value, usage)
-}
-
-func PercentP(f *pflag.FlagSet, name, shorthand string, value decimal.Decimal, usage string) {
-	p := new(decimal.Decimal)
-	PercentVarP(f, p, name, shorthand, value, usage)
-}
-
-func Percent(f *pflag.FlagSet, name string, value decimal.Decimal, usage string) {
-	p := new(decimal.Decimal)
-	PercentVarP(f, p, name, "", value, usage)
 }
