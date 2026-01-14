@@ -17,7 +17,7 @@ func NewFireCmd() *cobra.Command {
 			fireNumber := annualExpenses.Div(safeWithdrawlRate)
 			prt.Printf("%-20s $%13.2v\n", "FIRE Number:", fireNumber)
 			prt.Printf(
-				"%-20s %13.2v%%\n",
+				"%-21s %13.2v%%\n",
 				"Safe Withdrawl Rate:",
 				safeWithdrawlRate.Mul(decimal.NewFromInt(100)),
 			)
