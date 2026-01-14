@@ -11,11 +11,11 @@ import (
 
 func NewTaxCmd() *cobra.Command {
 	income := decimal.Zero
-	var filingStatus string
-	var year uint16
-	// var adjustments decimal.Decimal
+	filingStatus := ""
+	year := uint16(0)
 	f01k := decimal.Zero
-	var state string
+	fica := false
+	state := ""
 
 	runE := func(cmd *cobra.Command, args []string) error {
 		taxPayer := tax.NewTaxPayer(
@@ -24,7 +24,10 @@ func NewTaxCmd() *cobra.Command {
 			tax.Adjustment{Label: "401k Contribution", Amount: f01k},
 		)
 
-		systemNames := []string{"us", "fica"}
+		systemNames := []string{"us"}
+		if fica {
+			systemNames = append(systemNames, "fica")
+		}
 		if state != "" {
 			systemNames = append(systemNames, state)
 		}
@@ -52,6 +55,7 @@ func NewTaxCmd() *cobra.Command {
 	cmd.Flags().VarP(flagx.NewDecimalFlag(&income), "income", "i", "Your gross income")
 	cmd.Flags().StringVarP(&filingStatus, "filing-status", "f", "single", "Your filing status")
 	cmd.Flags().Uint16VarP(&year, "year", "y", 2025, "Tax year")
+	cmd.Flags().BoolVar(&fica, "fica", false, "Include FICA tax")
 	cmd.Flags().StringVar(&state, "state", "", "State income tax")
 	// flagx.DecimalVar(cmd.Flags(), &adjustments, "adjustments", decimal.Zero, "adjustments (ex: Retirement Contributions, Student Loan Interest)")
 	cmd.Flags().Var(flagx.NewDecimalFlag(&f01k), "401k", "401k Contributions")
@@ -78,7 +82,7 @@ func runTaxCmd(taxPayer tax.TaxPayer, systems []tax.TaxSystem) {
 			case "currency":
 				prt.Printf("%-20s $%12.2v\n", stat.Name+":", stat.Value)
 			case "percent":
-				prt.Printf("%-20s %12.2v%%\n", stat.Name+":", stat.Value.Mul(oneHundred))
+				prt.Printf("%-21s %12.2v%%\n", stat.Name+":", stat.Value.Mul(oneHundred))
 			}
 		}
 		prt.Println("")
@@ -87,6 +91,6 @@ func runTaxCmd(taxPayer tax.TaxPayer, systems []tax.TaxSystem) {
 	prt.Println("Total")
 	prt.Println(strings.Repeat("-", 20))
 	prt.Printf("%-20s $%12.2v\n", "Taxes:", totalTaxes)
-	prt.Printf("%-20s %12.2v%%\n", "Effective Tax Rate:", totalTaxes.Div(taxPayer.Income).Mul(oneHundred))
+	prt.Printf("%-21s %12.2v%%\n", "Effective Tax Rate:", totalTaxes.Div(taxPayer.Income).Mul(oneHundred))
 	prt.Printf("%-20s $%12.2v\n", "Disposable Income:", taxPayer.Income.Sub(totalTaxes))
 }
