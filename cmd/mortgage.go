@@ -30,7 +30,7 @@ func NewMortgageCmd() *cobra.Command {
 
 	mf.Rate = decimal.Zero
 	cmd.Flags().VarP(
-		flagx.NewDecimalFlag(&mf.Rate),
+		flagx.NewPercentFlag(&mf.Rate),
 		"rate",
 		"r",
 		"Annual interest rate",
