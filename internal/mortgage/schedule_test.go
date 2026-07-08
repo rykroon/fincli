@@ -74,9 +74,11 @@ func TestCalculateScheduleZeroRate(t *testing.T) {
 
 func TestExtraPaymentsShortenSchedule(t *testing.T) {
 	loan := NewLoan(dec(t, "300000"), dec(t, "0.07"), 30)
+	zero := dec(t, "0")
 	base := CalculateSchedule(loan, NewDefaultStrategy())
-	extraMonthly := CalculateSchedule(loan, NewExtraMonthlyStrategy(dec(t, "200")))
-	extraAnnual := CalculateSchedule(loan, NewExtraAnnualStrategy(dec(t, "2400")))
+	extraMonthly := CalculateSchedule(loan, NewExtraPaymentStrategy(dec(t, "200"), zero))
+	extraAnnual := CalculateSchedule(loan, NewExtraPaymentStrategy(zero, dec(t, "2400")))
+	combined := CalculateSchedule(loan, NewExtraPaymentStrategy(dec(t, "200"), dec(t, "2400")))
 
 	if len(extraMonthly.Payments) >= len(base.Payments) {
 		t.Errorf(
@@ -94,13 +96,24 @@ func TestExtraPaymentsShortenSchedule(t *testing.T) {
 			len(extraAnnual.Payments), len(base.Payments),
 		)
 	}
+
+	if len(combined.Payments) >= len(extraMonthly.Payments) ||
+		len(combined.Payments) >= len(extraAnnual.Payments) {
+		t.Errorf(
+			"combined extras should beat either alone: combined=%d monthly=%d annual=%d",
+			len(combined.Payments), len(extraMonthly.Payments), len(extraAnnual.Payments),
+		)
+	}
+	if !combined.TotalInterest.LessThan(extraMonthly.TotalInterest) {
+		t.Error("combined extras should reduce interest below monthly-only")
+	}
 }
 
 // A payment that doesn't cover interest must not loop forever; the schedule
 // bails out instead of growing the balance indefinitely.
 func TestCalculateScheduleTerminatesWhenPaymentTooSmall(t *testing.T) {
 	loan := NewLoan(dec(t, "300000"), dec(t, "0.07"), 30)
-	sched := CalculateSchedule(loan, NewExtraMonthlyStrategy(dec(t, "-5000")))
+	sched := CalculateSchedule(loan, NewExtraPaymentStrategy(dec(t, "-5000"), dec(t, "0")))
 	if len(sched.Payments) > 1 {
 		t.Errorf("expected schedule to bail out, got %d payments", len(sched.Payments))
 	}

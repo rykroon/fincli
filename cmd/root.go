@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/rykroon/fincli/internal/flagx"
 	"github.com/rykroon/fincli/internal/fmtx"
 	"github.com/spf13/cobra"
 )
@@ -20,16 +19,22 @@ func Execute() {
 var prt fmtx.NumberPrinter
 
 func NewRootCmd() *cobra.Command {
+	sep := ","
+
 	persistentPreRunE := func(cmd *cobra.Command, args []string) error {
-		sep, err := flagx.GetRune(cmd.Flags(), "sep")
-		if err != nil {
-			return err
-		}
-		if sep != 0 && sep != ',' && sep != '_' {
-			return fmt.Errorf("invalid value '%c' for sep, must be ',' or '_'", sep)
+		var sepRune rune
+		switch sep {
+		case ",":
+			sepRune = ','
+		case "_":
+			sepRune = '_'
+		case "none", "":
+			sepRune = 0
+		default:
+			return fmt.Errorf("invalid value '%s' for sep, must be ',', '_', or 'none'", sep)
 		}
 
-		prt = fmtx.NewNumberPrinter(sep)
+		prt = fmtx.NewNumberPrinter(sepRune)
 		return nil
 	}
 
@@ -45,7 +50,8 @@ func NewRootCmd() *cobra.Command {
 	cmd.AddCommand(NewFireCmd())
 	cmd.AddCommand(NewTaxCmd())
 
-	sep := rune(0)
-	cmd.PersistentFlags().Var(flagx.NewRuneFlag(&sep), "sep", "thousands separator")
+	cmd.PersistentFlags().StringVar(
+		&sep, "sep", ",", "thousands separator: ',', '_', or 'none'",
+	)
 	return cmd
 }

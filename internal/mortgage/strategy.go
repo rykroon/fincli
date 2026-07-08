@@ -18,32 +18,21 @@ func (s DefaultStrategy) NextPayment(loan *Loan, sched *Schedule) decimal.Decima
 	return CalculateMonthlyPayment(loan.Principal, loan.MonthlyRate(), loan.NumPeriods())
 }
 
-type ExtraMonthlyStrategy struct {
-	extraPayment decimal.Decimal
+type ExtraPaymentStrategy struct {
+	extraMonthly decimal.Decimal
+	extraAnnual  decimal.Decimal
 }
 
-func NewExtraMonthlyStrategy(extraPayment decimal.Decimal) PaymentStrategy {
-	return ExtraMonthlyStrategy{extraPayment: extraPayment}
+func NewExtraPaymentStrategy(extraMonthly, extraAnnual decimal.Decimal) PaymentStrategy {
+	return ExtraPaymentStrategy{extraMonthly: extraMonthly, extraAnnual: extraAnnual}
 }
 
-func (s ExtraMonthlyStrategy) NextPayment(loan *Loan, sched *Schedule) decimal.Decimal {
+func (s ExtraPaymentStrategy) NextPayment(loan *Loan, sched *Schedule) decimal.Decimal {
 	payment := CalculateMonthlyPayment(loan.Principal, loan.MonthlyRate(), loan.NumPeriods())
-	payment = payment.Add(s.extraPayment)
-	return payment
-}
-
-type ExtraAnnualStrategy struct {
-	extraPayment decimal.Decimal
-}
-
-func NewExtraAnnualStrategy(extraPayment decimal.Decimal) PaymentStrategy {
-	return ExtraAnnualStrategy{extraPayment: extraPayment}
-}
-
-func (s ExtraAnnualStrategy) NextPayment(loan *Loan, sched *Schedule) decimal.Decimal {
-	payment := CalculateMonthlyPayment(loan.Principal, loan.MonthlyRate(), loan.NumPeriods())
+	payment = payment.Add(s.extraMonthly)
+	// the extra annual payment lands on the first month of each loan year
 	if len(sched.Payments)%12 == 0 {
-		payment = payment.Add(s.extraPayment)
+		payment = payment.Add(s.extraAnnual)
 	}
 	return payment
 }

@@ -16,7 +16,7 @@ func NewTaxCmd() *cobra.Command {
 	filingStatus := ""
 	year := uint16(0)
 	f01k := decimal.Zero
-	fica := false
+	noFica := false
 	state := ""
 
 	runE := func(cmd *cobra.Command, args []string) error {
@@ -40,7 +40,7 @@ func NewTaxCmd() *cobra.Command {
 		)
 
 		systemNames := []string{"us"}
-		if fica {
+		if !noFica {
 			systemNames = append(systemNames, "fica")
 		}
 		if state != "" {
@@ -69,7 +69,7 @@ func NewTaxCmd() *cobra.Command {
 	cmd.Flags().VarP(flagx.NewDecimalFlag(&income), "income", "i", "Your gross income")
 	cmd.Flags().StringVarP(&filingStatus, "filing-status", "f", "single", "Your filing status")
 	cmd.Flags().Uint16VarP(&year, "year", "y", uint16(time.Now().Year()), "Tax year")
-	cmd.Flags().BoolVar(&fica, "fica", false, "Include FICA tax")
+	cmd.Flags().BoolVar(&noFica, "no-fica", false, "Exclude FICA tax")
 	cmd.Flags().StringVar(&state, "state", "", "State income tax")
 	cmd.Flags().Var(flagx.NewDecimalFlag(&f01k), "401k", "401k Contributions")
 	cmd.MarkFlagRequired("income")

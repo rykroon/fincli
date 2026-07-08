@@ -54,7 +54,7 @@ func NewMortgageCmd() *cobra.Command {
 	cmd.Flags().Var(
 		flagx.NewDecimalFlag(&mf.ExtraAnnualPayment),
 		"extra-annual",
-		"Extra annual payment",
+		"Extra annual payment, applied at the start of each loan year",
 	)
 
 	cmd.Flags().BoolVar(
@@ -109,11 +109,12 @@ func (mf mortgageFlags) Validate() error {
 
 func runMortgageCmd(mf mortgageFlags) {
 	loan := mortgage.NewLoan(mf.Principal, mf.Rate, mf.Years)
+	hasExtra := mf.ExtraMonthlyPayment.IsPositive() || mf.ExtraAnnualPayment.IsPositive()
 	strategy := mortgage.NewDefaultStrategy()
-	if !mf.ExtraMonthlyPayment.IsZero() {
-		strategy = mortgage.NewExtraMonthlyStrategy(mf.ExtraMonthlyPayment)
-	} else if !mf.ExtraAnnualPayment.IsZero() {
-		strategy = mortgage.NewExtraAnnualStrategy(mf.ExtraAnnualPayment)
+	if hasExtra {
+		strategy = mortgage.NewExtraPaymentStrategy(
+			mf.ExtraMonthlyPayment, mf.ExtraAnnualPayment,
+		)
 	}
 	sched := mortgage.CalculateSchedule(loan, strategy)
 	monthlyPayment := mortgage.CalculateMonthlyPayment(
@@ -132,6 +133,14 @@ func runMortgageCmd(mf mortgageFlags) {
 	years := sched.NumPeriods().Div(twelve)
 	months := sched.NumPeriods().Mod(twelve)
 	prt.Printf("Pay off in %.0v years and %0v months\n", years, months)
+
+	if hasExtra {
+		baseline := mortgage.CalculateSchedule(loan, mortgage.NewDefaultStrategy())
+		interestSaved := baseline.TotalInterest.Sub(sched.TotalInterest)
+		monthsSaved := len(baseline.Payments) - len(sched.Payments)
+		prt.Printf("Interest Saved: $%.2v\n", interestSaved)
+		prt.Printf("Time Saved: %d years and %d months\n", monthsSaved/12, monthsSaved%12)
+	}
 	prt.Println("")
 
 	if mf.PrintAnnual {
