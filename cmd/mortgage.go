@@ -121,25 +121,32 @@ func runMortgageCmd(mf mortgageFlags) {
 		loan.Principal, loan.MonthlyRate(), loan.NumPeriods(),
 	)
 
-	prt.Printf("Monthly Payment: $%.2v\n", monthlyPayment)
+	prt.Println("Loan")
+	prt.Println(strings.Repeat("-", 20))
+	prt.Printf("%-20s $%12.2v\n", "Principal:", loan.Principal)
+	prt.Printf("%-21s %12.2v%%\n", "Interest Rate:", loan.AnnualRate.Mul(decimal.NewFromInt(100)))
+	prt.Printf("%-20s %13s\n", "Term:", fmt.Sprintf("%d years", loan.NumYears))
+	prt.Println("")
+
+	prt.Println("Payments")
+	prt.Println(strings.Repeat("-", 20))
+	prt.Printf("%-20s $%12.2v\n", "Monthly Payment:", monthlyPayment)
 	if !monthlyPayment.Round(2).Equal(sched.AverageMonthlyPayment().Round(2)) {
-		prt.Printf("Average Monthly Payment: $%.2v\n", sched.AverageMonthlyPayment())
+		prt.Printf("%-20s $%12.2v\n", "Avg Monthly Payment:", sched.AverageMonthlyPayment())
 	}
-
-	prt.Printf("Total Amount Paid: $%.2v\n", sched.TotalAmount())
-	prt.Printf("Total Interest Paid: $%.2v\n", sched.TotalInterest)
-
-	twelve := decimal.NewFromInt(12)
-	years := sched.NumPeriods().Div(twelve)
-	months := sched.NumPeriods().Mod(twelve)
-	prt.Printf("Pay off in %.0v years and %0v months\n", years, months)
+	prt.Printf("%-20s $%12.2v\n", "Total Paid:", sched.TotalAmount())
+	prt.Printf("%-20s $%12.2v\n", "Total Interest:", sched.TotalInterest)
+	prt.Printf("%-20s %13s\n", "Payoff Time:", formatMonths(len(sched.Payments)))
 
 	if hasExtra {
 		baseline := mortgage.CalculateSchedule(loan, mortgage.NewDefaultStrategy())
 		interestSaved := baseline.TotalInterest.Sub(sched.TotalInterest)
 		monthsSaved := len(baseline.Payments) - len(sched.Payments)
-		prt.Printf("Interest Saved: $%.2v\n", interestSaved)
-		prt.Printf("Time Saved: %d years and %d months\n", monthsSaved/12, monthsSaved%12)
+		prt.Println("")
+		prt.Println("Savings (vs. no extra payments)")
+		prt.Println(strings.Repeat("-", 20))
+		prt.Printf("%-20s $%12.2v\n", "Interest Saved:", interestSaved)
+		prt.Printf("%-20s %13s\n", "Time Saved:", formatMonths(monthsSaved))
 	}
 	prt.Println("")
 
@@ -148,6 +155,10 @@ func runMortgageCmd(mf mortgageFlags) {
 	} else if mf.PrintMonthly {
 		printMonthlySchedule(sched)
 	}
+}
+
+func formatMonths(months int) string {
+	return fmt.Sprintf("%d yrs %d mos", months/12, months%12)
 }
 
 func printMonthlySchedule(schedule *mortgage.Schedule) {
