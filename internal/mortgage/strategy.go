@@ -18,29 +18,29 @@ func (s DefaultStrategy) NextPayment(loan *Loan, sched *Schedule) decimal.Decima
 	return CalculateMonthlyPayment(loan.Principal, loan.MonthlyRate(), loan.NumPeriods())
 }
 
-type ExtraMonthlyStratgey struct {
+type ExtraMonthlyStrategy struct {
 	extraPayment decimal.Decimal
 }
 
 func NewExtraMonthlyStrategy(extraPayment decimal.Decimal) PaymentStrategy {
-	return ExtraMonthlyStratgey{extraPayment: extraPayment}
+	return ExtraMonthlyStrategy{extraPayment: extraPayment}
 }
 
-func (s ExtraMonthlyStratgey) NextPayment(loan *Loan, sched *Schedule) decimal.Decimal {
+func (s ExtraMonthlyStrategy) NextPayment(loan *Loan, sched *Schedule) decimal.Decimal {
 	payment := CalculateMonthlyPayment(loan.Principal, loan.MonthlyRate(), loan.NumPeriods())
 	payment = payment.Add(s.extraPayment)
 	return payment
 }
 
-type ExtraAnnualStratgey struct {
+type ExtraAnnualStrategy struct {
 	extraPayment decimal.Decimal
 }
 
 func NewExtraAnnualStrategy(extraPayment decimal.Decimal) PaymentStrategy {
-	return ExtraAnnualStratgey{extraPayment: extraPayment}
+	return ExtraAnnualStrategy{extraPayment: extraPayment}
 }
 
-func (s ExtraAnnualStratgey) NextPayment(loan *Loan, sched *Schedule) decimal.Decimal {
+func (s ExtraAnnualStrategy) NextPayment(loan *Loan, sched *Schedule) decimal.Decimal {
 	payment := CalculateMonthlyPayment(loan.Principal, loan.MonthlyRate(), loan.NumPeriods())
 	if len(sched.Payments)%12 == 0 {
 		payment = payment.Add(s.extraPayment)

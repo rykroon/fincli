@@ -40,12 +40,21 @@ func NewHouseCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "house",
 		Short: "Calculate the costs of purchasing a house.",
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if !hf.Price.IsPositive() {
+				return fmt.Errorf("price must be greater than zero")
+			}
+			if hf.Rate.IsNegative() {
+				return fmt.Errorf("rate must not be negative")
+			}
+			if hf.Years == 0 {
+				return fmt.Errorf("years must be greater than zero")
+			}
 			runHouseCmd(hf)
+			return nil
 		},
 	}
 
-	hf.Price = decimal.Zero
 	cmd.Flags().VarP(flagx.NewDecimalFlag(&hf.Price), "price", "p", "Home price")
 
 	hf.DownPaymentPercent = decimal.NewFromFloat(.2)
@@ -56,7 +65,6 @@ func NewHouseCmd() *cobra.Command {
 		"Down payment percent",
 	)
 
-	hf.Rate = decimal.Zero
 	cmd.Flags().VarP(
 		flagx.NewPercentFlag(&hf.Rate), "rate", "r", "Mortgage interest rate",
 	)
@@ -70,12 +78,10 @@ func NewHouseCmd() *cobra.Command {
 		"Estimated closing costs as a percent",
 	)
 
-	hf.AnnualTax = decimal.Zero
 	cmd.Flags().VarP(
 		flagx.NewDecimalFlag(&hf.AnnualTax), "taxes", "t", "Annual property taxes",
 	)
 
-	hf.AnnualInsurance = decimal.Zero
 	cmd.Flags().VarP(
 		flagx.NewDecimalFlag(&hf.AnnualInsurance),
 		"insurance",
@@ -83,17 +89,14 @@ func NewHouseCmd() *cobra.Command {
 		"Annual homeowners insurance",
 	)
 
-	hf.PmiRate = decimal.Zero
 	cmd.Flags().Var(flagx.NewPercentFlag(&hf.PmiRate), "pmi", "PMI rate")
 
-	hf.MonthlyHoa = decimal.Zero
 	cmd.Flags().Var(flagx.NewDecimalFlag(&hf.MonthlyHoa), "hoa", "Monthly HOA fee")
 
 	cmd.MarkFlagRequired("price")
 	cmd.MarkFlagRequired("rate")
 
 	cmd.Flags().SortFlags = false
-	cmd.Flags().PrintDefaults()
 
 	return cmd
 }

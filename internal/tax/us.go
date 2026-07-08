@@ -1,6 +1,8 @@
 package tax
 
 import (
+	"fmt"
+
 	"github.com/shopspring/decimal"
 )
 
@@ -15,10 +17,12 @@ type UsTaxSystem struct {
 	FilingConfigs map[FilingStatus]UsFilingConfig `json:"filing_configs"`
 }
 
-func (sys UsTaxSystem) CalculateTax(p TaxPayer) TaxResult {
+func (sys UsTaxSystem) CalculateTax(p TaxPayer) (TaxResult, error) {
 	config, ok := sys.FilingConfigs[p.FilingStatus]
 	if !ok {
-		panic("Filing status not found.")
+		return TaxResult{}, fmt.Errorf(
+			"no federal tax data for filing status '%s'", p.FilingStatus,
+		)
 	}
 
 	adjustedGrossIncome := p.Income
@@ -26,7 +30,9 @@ func (sys UsTaxSystem) CalculateTax(p TaxPayer) TaxResult {
 		adjustedGrossIncome = adj.Adjust(adjustedGrossIncome)
 	}
 
-	taxableIncome := adjustedGrossIncome.Sub(config.StandardDeduction)
+	taxableIncome := decimal.Max(
+		adjustedGrossIncome.Sub(config.StandardDeduction), decimal.Zero,
+	)
 	marginalBracket := config.Schedule.GetMarginalBracket(taxableIncome)
 	taxesDue := config.Schedule.CalculateTax(taxableIncome)
 
@@ -38,5 +44,5 @@ func (sys UsTaxSystem) CalculateTax(p TaxPayer) TaxResult {
 	result.AddStat("Effective Tax Rate", taxesDue.Div(p.Income), "percent")
 	result.AddStat("Taxes", taxesDue, "currency")
 
-	return result
+	return result, nil
 }

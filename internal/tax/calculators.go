@@ -28,12 +28,15 @@ type ProgressiveTax struct {
 }
 
 func (t ProgressiveTax) GetMarginalBracket(income decimal.Decimal) Bracket {
+	if len(t.Brackets) == 0 {
+		return Bracket{}
+	}
 	for _, bracket := range t.Brackets {
-		if bracket.Lower.LessThanOrEqual(income) && income.LessThan(bracket.Upper) {
+		if income.LessThan(bracket.Upper) {
 			return bracket
 		}
 	}
-	panic("a bracket could not be found")
+	return t.Brackets[len(t.Brackets)-1]
 }
 
 func (c ProgressiveTax) CalculateTax(income decimal.Decimal) decimal.Decimal {

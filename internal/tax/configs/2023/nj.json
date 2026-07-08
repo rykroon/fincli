@@ -16,7 +16,7 @@
                 {"lower": 0, "upper": 20000, "rate": 0.014},
                 {"lower": 20000, "upper": 50000, "rate": 0.0175},
                 {"lower": 50000, "upper": 70000, "rate": 0.0245},
-                {"lower": 7000, "upper": 80000, "rate": 0.035},
+                {"lower": 70000, "upper": 80000, "rate": 0.035},
                 {"lower": 80000, "upper": 150000, "rate": 0.05525},
                 {"lower": 150000, "upper": 500000, "rate": 0.0637},
                 {"lower": 500000, "upper": 1000000, "rate": 0.0897},

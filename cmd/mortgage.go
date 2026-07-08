@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/rykroon/fincli/internal/flagx"
@@ -15,12 +16,15 @@ func NewMortgageCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "mortgage",
 		Short: "Calculate a mortgage",
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := mf.Validate(); err != nil {
+				return err
+			}
 			runMortgageCmd(mf)
+			return nil
 		},
 	}
 
-	mf.Principal = decimal.Zero
 	cmd.Flags().VarP(
 		flagx.NewDecimalFlag(&mf.Principal),
 		"principal",
@@ -28,7 +32,6 @@ func NewMortgageCmd() *cobra.Command {
 		"The principal (loan amount)",
 	)
 
-	mf.Rate = decimal.Zero
 	cmd.Flags().VarP(
 		flagx.NewPercentFlag(&mf.Rate),
 		"rate",
@@ -42,14 +45,12 @@ func NewMortgageCmd() *cobra.Command {
 	cmd.MarkFlagRequired("rate")
 
 	// optional flags
-	mf.ExtraMonthlyPayment = decimal.Zero
 	cmd.Flags().Var(
 		flagx.NewDecimalFlag(&mf.ExtraMonthlyPayment),
 		"extra-monthly",
 		"Extra monthly payment",
 	)
 
-	mf.ExtraAnnualPayment = decimal.Zero
 	cmd.Flags().Var(
 		flagx.NewDecimalFlag(&mf.ExtraAnnualPayment),
 		"extra-annual",
@@ -73,10 +74,8 @@ func NewMortgageCmd() *cobra.Command {
 	cmd.MarkFlagsMutuallyExclusive("print-annual", "print-monthly")
 
 	cmd.Flags().SortFlags = false
-	cmd.Flags().PrintDefaults()
 
 	return cmd
-
 }
 
 type mortgageFlags struct {
@@ -89,9 +88,23 @@ type mortgageFlags struct {
 	PrintAnnual         bool
 }
 
-func (mf mortgageFlags) HasExtraPayment() bool {
-	return (mf.ExtraAnnualPayment.GreaterThan(decimal.Zero) ||
-		mf.ExtraMonthlyPayment.GreaterThan(decimal.Zero))
+func (mf mortgageFlags) Validate() error {
+	if !mf.Principal.IsPositive() {
+		return fmt.Errorf("principal must be greater than zero")
+	}
+	if mf.Rate.IsNegative() {
+		return fmt.Errorf("rate must not be negative")
+	}
+	if mf.Years == 0 {
+		return fmt.Errorf("years must be greater than zero")
+	}
+	if mf.ExtraMonthlyPayment.IsNegative() {
+		return fmt.Errorf("extra monthly payment must not be negative")
+	}
+	if mf.ExtraAnnualPayment.IsNegative() {
+		return fmt.Errorf("extra annual payment must not be negative")
+	}
+	return nil
 }
 
 func runMortgageCmd(mf mortgageFlags) {

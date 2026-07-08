@@ -2,6 +2,7 @@ package flagx
 
 import (
 	"fmt"
+	"unicode/utf8"
 
 	"github.com/spf13/pflag"
 )
@@ -12,10 +13,11 @@ func NewRuneFlag(r *rune) *Flag[rune] {
 		type_:      "rune",
 		stringFunc: func(v rune) string { return string(v) },
 		setFunc: func(s string, p *rune) error {
-			if len(s) != 1 {
+			v, size := utf8.DecodeRuneInString(s)
+			if v == utf8.RuneError || size != len(s) {
 				return fmt.Errorf("must be a single character")
 			}
-			*r = rune(s[0])
+			*p = v
 			return nil
 		},
 	}

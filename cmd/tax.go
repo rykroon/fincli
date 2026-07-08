@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"fmt"
 	"strings"
+	"time"
 
 	"github.com/rykroon/fincli/internal/flagx"
 	"github.com/rykroon/fincli/internal/tax"
@@ -18,9 +20,22 @@ func NewTaxCmd() *cobra.Command {
 	state := ""
 
 	runE := func(cmd *cobra.Command, args []string) error {
+		if !income.IsPositive() {
+			return fmt.Errorf("income must be greater than zero")
+		}
+
+		parsedStatus, err := tax.ParseFilingStatus(filingStatus)
+		if err != nil {
+			return err
+		}
+
+		if state != "" && !tax.IsStateSystem(state) {
+			return fmt.Errorf("state '%s' not supported", state)
+		}
+
 		taxPayer := tax.NewTaxPayer(
 			income,
-			tax.FilingStatus(filingStatus),
+			parsedStatus,
 			tax.Adjustment{Label: "401k Contribution", Amount: f01k},
 		)
 
@@ -42,8 +57,7 @@ func NewTaxCmd() *cobra.Command {
 			taxSystems = append(taxSystems, system)
 		}
 
-		runTaxCmd(taxPayer, taxSystems)
-		return nil
+		return runTaxCmd(taxPayer, taxSystems)
 	}
 
 	cmd := &cobra.Command{
@@ -54,16 +68,15 @@ func NewTaxCmd() *cobra.Command {
 
 	cmd.Flags().VarP(flagx.NewDecimalFlag(&income), "income", "i", "Your gross income")
 	cmd.Flags().StringVarP(&filingStatus, "filing-status", "f", "single", "Your filing status")
-	cmd.Flags().Uint16VarP(&year, "year", "y", 2025, "Tax year")
+	cmd.Flags().Uint16VarP(&year, "year", "y", uint16(time.Now().Year()), "Tax year")
 	cmd.Flags().BoolVar(&fica, "fica", false, "Include FICA tax")
 	cmd.Flags().StringVar(&state, "state", "", "State income tax")
-	// flagx.DecimalVar(cmd.Flags(), &adjustments, "adjustments", decimal.Zero, "adjustments (ex: Retirement Contributions, Student Loan Interest)")
 	cmd.Flags().Var(flagx.NewDecimalFlag(&f01k), "401k", "401k Contributions")
 	cmd.MarkFlagRequired("income")
 	return cmd
 }
 
-func runTaxCmd(taxPayer tax.TaxPayer, systems []tax.TaxSystem) {
+func runTaxCmd(taxPayer tax.TaxPayer, systems []tax.TaxSystem) error {
 	prt.Printf("%-20s $%12.2v\n", "Gross Income:", taxPayer.Income)
 	prt.Printf("%-20s %-12s\n", "Filing Status:", taxPayer.FilingStatus)
 	prt.Println("")
@@ -72,7 +85,10 @@ func runTaxCmd(taxPayer tax.TaxPayer, systems []tax.TaxSystem) {
 	oneHundred := decimal.NewFromInt(100)
 
 	for _, system := range systems {
-		result := system.CalculateTax(taxPayer)
+		result, err := system.CalculateTax(taxPayer)
+		if err != nil {
+			return err
+		}
 		totalTaxes = totalTaxes.Add(result.Taxes)
 
 		prt.Println(result.Name)
@@ -93,4 +109,5 @@ func runTaxCmd(taxPayer tax.TaxPayer, systems []tax.TaxSystem) {
 	prt.Printf("%-20s $%12.2v\n", "Taxes:", totalTaxes)
 	prt.Printf("%-21s %12.2v%%\n", "Effective Tax Rate:", totalTaxes.Div(taxPayer.Income).Mul(oneHundred))
 	prt.Printf("%-20s $%12.2v\n", "Disposable Income:", taxPayer.Income.Sub(totalTaxes))
+	return nil
 }

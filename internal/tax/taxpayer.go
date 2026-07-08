@@ -1,6 +1,10 @@
 package tax
 
-import "github.com/shopspring/decimal"
+import (
+	"fmt"
+
+	"github.com/shopspring/decimal"
+)
 
 type FilingStatus string
 
@@ -10,6 +14,18 @@ const (
 	MarriedSeparate FilingStatus = "married_separate"
 	HeadOfHouse     FilingStatus = "head_of_household"
 )
+
+func ParseFilingStatus(s string) (FilingStatus, error) {
+	switch fs := FilingStatus(s); fs {
+	case Single, MarriedJoint, MarriedSeparate, HeadOfHouse:
+		return fs, nil
+	default:
+		return "", fmt.Errorf(
+			"invalid filing status '%s', must be one of: %s, %s, %s, %s",
+			s, Single, MarriedJoint, MarriedSeparate, HeadOfHouse,
+		)
+	}
+}
 
 type TaxPayer struct {
 	Income       decimal.Decimal

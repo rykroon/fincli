@@ -30,5 +30,5 @@ func (tr *TaxResult) AddStat(name string, value decimal.Decimal, statType StatTy
 }
 
 type TaxSystem interface {
-	CalculateTax(TaxPayer) TaxResult
+	CalculateTax(TaxPayer) (TaxResult, error)
 }

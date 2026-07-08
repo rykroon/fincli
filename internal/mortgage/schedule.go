@@ -47,6 +47,10 @@ func CalculateSchedule(loan *Loan, strategy PaymentStrategy) *Schedule {
 		interest := balance.Mul(loan.MonthlyRate())
 		paymentAmount := strategy.NextPayment(loan, schedule)
 		principal := paymentAmount.Sub(interest)
+		// payment doesn't cover interest; balance would grow forever
+		if !principal.IsPositive() {
+			break
+		}
 		if principal.GreaterThan(balance) {
 			principal = balance
 		}
@@ -59,6 +63,9 @@ func CalculateSchedule(loan *Loan, strategy PaymentStrategy) *Schedule {
 
 func CalculateMonthlyPayment(p, i decimal.Decimal, n uint16) decimal.Decimal {
 	// P * ((i * (1+i)^n) / ((1+i)^n - 1))
+	if i.IsZero() {
+		return p.Div(decimal.NewFromInt(int64(n)))
+	}
 	one := decimal.NewFromInt(1)
 	onePlusIPowN := one.Add(i).Pow(decimal.NewFromUint64(uint64(n)))
 	return p.Mul((i.Mul(onePlusIPowN)).Div(onePlusIPowN.Sub(one)))

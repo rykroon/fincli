@@ -5,7 +5,7 @@ type FicaTaxSystem struct {
 	MedicareTax       FlatTax   `json:"medicare_tax"`
 }
 
-func (s FicaTaxSystem) CalculateTax(p TaxPayer) TaxResult {
+func (s FicaTaxSystem) CalculateTax(p TaxPayer) (TaxResult, error) {
 	ssTaxDue := s.SocialSecurityTax.CalculateTax(p.Income)
 	mcTaxDue := s.MedicareTax.CalculateTax(p.Income)
 
@@ -14,5 +14,5 @@ func (s FicaTaxSystem) CalculateTax(p TaxPayer) TaxResult {
 	result := NewTaxResult("FICA Tax", total)
 	result.AddStat("Social Security Tax", ssTaxDue, "currency")
 	result.AddStat("Medicare Tax", mcTaxDue, "currency")
-	return result
+	return result, nil
 }

@@ -4,24 +4,34 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
-	"path/filepath"
+	"path"
 	"strconv"
 )
 
 //go:embed configs
 var configs embed.FS
 
-var taxSystems map[string]TaxSystem = map[string]TaxSystem{
-	"us":   &UsTaxSystem{},
-	"fica": &FicaTaxSystem{},
-	"nj":   &NjTaxSystem{},
+var taxSystemFactories = map[string]func() TaxSystem{
+	"us":   func() TaxSystem { return &UsTaxSystem{} },
+	"fica": func() TaxSystem { return &FicaTaxSystem{} },
+	"nj":   func() TaxSystem { return &NjTaxSystem{} },
+}
+
+// stateSystems are the tax system names that may be passed as a state.
+var stateSystems = map[string]bool{
+	"nj": true,
+}
+
+func IsStateSystem(name string) bool {
+	return stateSystems[name]
 }
 
 func LoadTaxSystem(year uint16, name string) (TaxSystem, error) {
-	system, ok := taxSystems[name]
+	newSystem, ok := taxSystemFactories[name]
 	if !ok {
 		return nil, fmt.Errorf("tax system '%s' not supported", name)
 	}
+	system := newSystem()
 
 	dirEntries, err := configs.ReadDir("configs")
 	if err != nil {
@@ -41,7 +51,7 @@ func LoadTaxSystem(year uint16, name string) (TaxSystem, error) {
 		return nil, fmt.Errorf("no tax tables found for year '%s'", yearStr)
 	}
 
-	filename := filepath.Join("configs", yearStr, name+".json")
+	filename := path.Join("configs", yearStr, name+".json")
 
 	file, err := configs.Open(filename)
 	if err != nil {
